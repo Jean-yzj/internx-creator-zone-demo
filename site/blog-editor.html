@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>撰寫文章｜InternX 創作者專區</title>
+<link rel="icon" href="/favicon.png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" />
+<link rel="stylesheet" href="/assets/app.css" />
+</head>
+<body data-page="blog">
+
+<main>
+  <div class="editorForm">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <h1 style="font-size:26px;color:#11243f;margin:0">撰寫新文章</h1>
+        <p class="muted" style="margin:6px 0 0;font-size:14px">以認證創作者身分發佈，文章會自動連結到你的主頁。</p>
+      </div>
+      <span class="profileBadgePill profileBadgePillGold profileBadgePillCompact"><span class="pillEmoji"><i class="ri-quill-pen-line"></i></span><span class="pillLabel">認證創作者</span></span>
+    </div>
+
+    <!-- 圖片 -->
+    <div class="formSection">
+      <h3><i class="ri-image-line"></i> 文章封面圖片</h3>
+      <div class="fileDrop" onclick="CZ.toast('Demo 不含真實上傳')">
+        <i class="ri-upload-cloud-2-line"></i>
+        拖曳圖片到這裡，或點擊上傳（最多 5 張）
+      </div>
+    </div>
+
+    <!-- 基本資訊 -->
+    <div class="formSection">
+      <h3><i class="ri-information-line"></i> 基本資訊</h3>
+      <label class="formLabel">文章標題 *</label>
+      <input class="input" id="title" placeholder="輸入吸引人的標題" maxlength="60" />
+      <div class="charCount" id="titleCount">0 / 60</div>
+
+      <label class="formLabel" style="margin-top:8px">文章摘要 *</label>
+      <textarea class="textArea" id="excerpt" rows="3" placeholder="一句話說明這篇文章的重點，會顯示在文章卡片上。" maxlength="120"></textarea>
+      <div class="charCount" id="excerptCount">0 / 120</div>
+
+      <div class="formRow" style="margin-top:8px">
+        <div>
+          <label class="formLabel">分類 *</label>
+          <select class="input" id="category">
+            <option>實習心得</option><option>職涯規劃</option><option selected>面試技巧</option>
+            <option>職場文化</option><option>技能提升</option><option>其他</option>
+          </select>
+        </div>
+        <div>
+          <label class="formLabel">狀態</label>
+          <select class="input" id="status"><option value="published">發佈</option><option value="draft">儲存為草稿</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 內容 -->
+    <div class="formSection">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0"><i class="ri-file-text-line"></i> 文章內容</h3>
+        <div class="tabSwitch">
+          <button class="activeTab" id="editTab">編輯</button>
+          <button id="previewTab">預覽</button>
+        </div>
+      </div>
+      <div id="editorWrap">
+        <div class="editorToolbar">
+          <button class="formatButton" data-cmd="h2"><i class="ri-h-2"></i> 標題</button>
+          <button class="formatButton" data-cmd="bold"><i class="ri-bold"></i> 粗體</button>
+          <button class="formatButton" data-cmd="ul"><i class="ri-list-unordered"></i> 項目清單</button>
+          <button class="formatButton" data-cmd="ol"><i class="ri-list-ordered"></i> 編號清單</button>
+          <button class="formatButton" data-cmd="link"><i class="ri-link"></i> 連結</button>
+          <button class="formatButton" data-cmd="quote"><i class="ri-double-quotes-l"></i> 引用</button>
+          <button class="formatButton" style="margin-left:auto" onclick="CZ.toast('Demo 不含真實上傳')"><i class="ri-image-add-line"></i> 上傳圖片</button>
+        </div>
+        <div class="editorArea articleBody" id="editor" contenteditable="true">
+          <h2>從這裡開始寫你的故事⋯</h2>
+          <p>選取文字後點擊上方工具列可套用格式。這個編輯器對應平台既有的 <strong>BlockEditor</strong> 元件。</p>
+          <ul><li>支援標題、粗體、清單、引用、連結與圖片</li><li>送出時會轉成 Markdown 儲存到 BlogPost.content</li></ul>
+        </div>
+      </div>
+      <div id="previewWrap" style="display:none">
+        <div class="articleBody" id="preview" style="border:1px solid #eee;border-radius:10px;padding:20px;min-height:280px"></div>
+      </div>
+    </div>
+
+    <div class="formActions">
+      <a class="btn btn-white" href="/blog">取消</a>
+      <button class="btn" id="submitBtn"><i class="ri-send-plane-line"></i> 發佈文章</button>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/render.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+  const $ = s => document.querySelector(s);
+  // 字數
+  function bind(inputId, countId, max) {
+    const el = $("#"+inputId), c = $("#"+countId);
+    el.addEventListener("input", () => { const n = el.value.length; c.textContent = n + " / " + max; c.classList.toggle("over", n > max); });
+  }
+  bind("title","titleCount",60); bind("excerpt","excerptCount",120);
+
+  // 工具列
+  document.querySelectorAll(".formatButton[data-cmd]").forEach(b => b.addEventListener("click", () => {
+    const cmd = b.dataset.cmd; document.getElementById("editor").focus();
+    if (cmd === "bold") document.execCommand("bold");
+    else if (cmd === "ul") document.execCommand("insertUnorderedList");
+    else if (cmd === "ol") document.execCommand("insertOrderedList");
+    else if (cmd === "h2") document.execCommand("formatBlock", false, "h2");
+    else if (cmd === "quote") document.execCommand("formatBlock", false, "blockquote");
+    else if (cmd === "link") { const u = prompt("輸入連結網址","https://"); if (u) document.execCommand("createLink", false, u); }
+  }));
+
+  // 編輯 / 預覽
+  $("#editTab").addEventListener("click", () => { $("#editTab").classList.add("activeTab"); $("#previewTab").classList.remove("activeTab"); $("#editorWrap").style.display="block"; $("#previewWrap").style.display="none"; });
+  $("#previewTab").addEventListener("click", () => { $("#previewTab").classList.add("activeTab"); $("#editTab").classList.remove("activeTab"); $("#editorWrap").style.display="none"; $("#previewWrap").style.display="block"; $("#preview").innerHTML = $("#editor").innerHTML; });
+
+  // 送出
+  $("#submitBtn").addEventListener("click", () => {
+    if (!$("#title").value.trim()) { CZ.toast("請先填寫文章標題"); $("#title").focus(); return; }
+    const status = $("#status").value;
+    CZ.toast(status === "draft" ? "已儲存為草稿" : "文章已發佈！");
+    setTimeout(() => location.href = "/blog-article?id=b1", 900);
+  });
+</script>
+</body>
+</html>

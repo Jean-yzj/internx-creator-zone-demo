@@ -1,0 +1,12 @@
+{
+  "name": "internx-creator-zone-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "InternX 實習通 — 創作者專區前端 Demo（工程交接用，前端假資料、無後端）",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

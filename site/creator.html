@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>創作者主頁｜InternX 創作者專區</title>
+<link rel="icon" href="/favicon.png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" />
+<link rel="stylesheet" href="/assets/app.css" />
+</head>
+<body data-page="creator">
+
+<main>
+  <div class="cz-container profile">
+    <div class="layout">
+      <!-- 側欄 -->
+      <aside class="sidebar">
+        <div class="sidebarCard" id="sidebar"></div>
+      </aside>
+      <!-- 主內容 -->
+      <div class="main">
+        <div class="sectionTabs" data-tabs="profile" id="tabs">
+          <button class="sectionTab active" data-tab="about">關於我</button>
+          <button class="sectionTab" data-tab="skills">專長</button>
+          <button class="sectionTab" data-tab="blog">部落格</button>
+          <button class="sectionTab" data-tab="events">主辦活動</button>
+          <button class="sectionTab" data-tab="log">活動紀錄</button>
+          <button class="sectionTab" data-tab="featured">心得 / 論壇</button>
+        </div>
+
+        <div class="mainCard">
+          <div class="tabPane active" data-pane="profile" data-pane-key="about" id="paneAbout"></div>
+          <div class="tabPane" data-pane="profile" data-pane-key="skills" id="paneSkills"></div>
+          <div class="tabPane" data-pane="profile" data-pane-key="blog" id="paneBlog"></div>
+          <div class="tabPane" data-pane="profile" data-pane-key="events" id="paneEvents"></div>
+          <div class="tabPane" data-pane="profile" data-pane-key="log" id="paneLog"></div>
+          <div class="tabPane" data-pane="profile" data-pane-key="featured" id="paneFeatured"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/render.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+  const D = window.CZ_DATA;
+  const id = new URLSearchParams(location.search).get("id") || D.featured;
+  const c = D.creators[id] || D.creators[D.featured];
+
+  /* 側欄 */
+  document.getElementById("sidebar").innerHTML = `
+    ${CZ.avatar(c.initials, c.color, 96, "sidebarAvatar")}
+    <h2 class="profileName">${c.name}</h2>
+    <div class="sidebarBadgeStrip">${CZ.badgePill(c, { clickable: true })}</div>
+    <p class="profileHeadline">${c.headline}</p>
+    <p class="profileSchool"><i class="ri-school-line"></i> ${c.school}</p>
+    <p class="profileSchool"><i class="ri-map-pin-line"></i> ${c.location || "台灣"}</p>
+    <div class="sidebarButtons">
+      <button class="btn btn-block" onclick="CZ.toast('已追蹤 ${c.name}')"><i class="ri-user-add-line"></i> 追蹤</button>
+      <button class="btn btn-white btn-block" onclick="CZ.toast('開啟私訊（平台既有功能）')"><i class="ri-message-3-line"></i> 私訊</button>
+    </div>
+    <div class="sidebarDivider"></div>
+    <div class="statRow">
+      <div class="statBox"><b>${(c.followers||0).toLocaleString()}</b><span>追蹤者</span></div>
+      <div class="statBox"><b>${c.stats?.posts||0}</b><span>文章</span></div>
+      <div class="statBox"><b>${c.stats?.events||0}</b><span>活動</span></div>
+    </div>
+    <div class="sidebarDivider"></div>
+    <div class="infoList">
+      <button class="pointsInfoRow" onclick="document.querySelector('[data-tab=blog]').click()"><i class="ri-article-line"></i> 部落格文章</button>
+      <button class="pointsInfoRow" onclick="document.querySelector('[data-tab=events]').click()"><i class="ri-calendar-event-line"></i> 主辦活動</button>
+      <button class="pointsInfoRow" onclick="CZ.toast('已複製創作者 ID：${c.id}')"><i class="ri-link"></i> 複製主頁連結</button>
+    </div>`;
+
+  /* 關於我 */
+  const social = (c.socialLinks || []).map(CZ.socialChip).join("");
+  document.getElementById("paneAbout").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-user-heart-line"></i> 關於我</div></div>
+    ${c.pitch ? `
+      <div class="pitchCard">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">${CZ.badgePill(c,{clickable:true})}<span style="font-size:13px;color:#9a7a14">已通過實習通官方審核</span></div>
+        <h4>所在產業或公司</h4><p>${c.pitch.organizationText}</p>
+        <h4>相關經歷與說明</h4><p>${c.pitch.experienceText}</p>
+      </div>` : ""}
+    <div class="aboutBlock">
+      <div class="aboutBlockTitle">讓我介紹自己⋯</div>
+      <p class="aboutText">${c.bio}</p>
+    </div>
+    <div class="aboutBlock">
+      <div class="aboutBlockTitle">社群連結</div>
+      <div style="display:flex;flex-wrap:wrap">${social || '<span class="muted">尚未提供</span>'}</div>
+    </div>`;
+
+  /* 專長 */
+  document.getElementById("paneSkills").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-medal-line"></i> 專長領域</div></div>
+    ${CZ.skillGroups(c.specialties)}`;
+
+  /* 部落格 */
+  const blogIds = c.blogs || [];
+  document.getElementById("paneBlog").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-quill-pen-line"></i> 部落格文章</div>
+      <a class="btn btn-small" href="/blog-editor"><i class="ri-add-line"></i> 撰寫</a></div>
+    ${blogIds.length ? `<div class="blogGrid">${blogIds.map(bid => CZ.blogCard(D.blogs[bid])).join("")}</div>`
+      : `<p class="muted">這位創作者尚未發佈文章。</p>`}`;
+
+  /* 主辦活動 */
+  const eventIds = c.hostedEvents || [];
+  document.getElementById("paneEvents").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-calendar-event-line"></i> 過往辦過的活動</div></div>
+    ${eventIds.length ? `<div class="activityGrid">${eventIds.map(eid => CZ.activityCard(D.events[eid])).join("")}</div>`
+      : `<p class="muted">尚無主辦活動。</p>`}`;
+
+  /* 活動紀錄 */
+  const log = c.activityLog || [];
+  document.getElementById("paneLog").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-history-line"></i> 活動紀錄</div></div>
+    ${log.length ? `<div class="timeline">${log.map(l => `
+      <div class="timelineItem">
+        <div class="tdate">${l.date}</div>
+        <div class="ttitle">${l.title}</div>
+        <div class="tdesc">${l.desc}</div>
+        <span class="trole ${l.role}">${l.role==="host"?"主辦":"參與"}</span>
+      </div>`).join("")}</div>` : `<p class="muted">尚無活動紀錄。</p>`}`;
+
+  /* 心得 / 論壇 */
+  const fp = c.featuredPosts || [], forum = c.forumPosts || [];
+  document.getElementById("paneFeatured").innerHTML = `
+    <div class="sectionHeader"><div class="sectionHeaderLeft"><i class="ri-sparkling-line"></i> 心得分享</div></div>
+    ${fp.length ? fp.map(p => `
+      <div class="featuredCard" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="company">${p.company}</span>
+          <span style="color:#e2a200;font-weight:700"><i class="ri-star-fill"></i> ${p.rating}</span>
+        </div>
+        <p class="summary">${p.summary}</p>
+        <div class="postBottom">${CZ.avatar(c.initials,c.color,28)}<span class="postBottomSenderName">${c.name} ${CZ.badgePill(c,{compact:true})}</span><span class="postBottomTimestamp">發表於 ${p.time}</span></div>
+      </div>`).join("") : `<p class="muted">尚無心得。</p>`}
+
+    <div class="sectionHeader" style="margin-top:28px"><div class="sectionHeaderLeft"><i class="ri-chat-1-line"></i> 論壇足跡</div></div>
+    ${forum.length ? forum.map(p => `
+      <div class="forumMsg">
+        <div class="postBottom">${CZ.avatar(c.initials,c.color,32)}<span class="postBottomSenderName">${c.name} ${CZ.badgePill(c,{compact:true})}</span><span class="postBottomTimestamp">・${p.room}・${p.time}</span></div>
+        <div class="bubble">${p.content}</div>
+        <div style="margin-top:8px;font-size:12.5px;color:#999"><i class="ri-thumb-up-line"></i> ${p.reactions} 個回應</div>
+      </div>`).join("") : `<p class="muted">尚無論壇發言。</p>`}`;
+
+  // hash → 切換到指定分頁
+  if (location.hash === "#events") document.querySelector('[data-tab=events]').click();
+</script>
+</body>
+</html>
