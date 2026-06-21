@@ -34,8 +34,8 @@
         <div class="cz-cc-tags">${tags}</div>
         <div class="cz-cc-foot">
           <span class="m"><i class="ri-user-heart-line"></i> <b>${(c.followers||0).toLocaleString()}</b> 追蹤</span>
-          <span class="m"><i class="ri-article-line"></i> <b>${c.stats?.posts||0}</b> 文章</span>
-          <span class="m"><i class="ri-calendar-event-line"></i> <b>${c.stats?.events||0}</b> 活動</span>
+          <span class="m"><i class="ri-article-line"></i> <b>${(c.blogs||[]).length}</b> 文章</span>
+          <span class="m"><i class="ri-calendar-event-line"></i> <b>${(c.hostedEvents||[]).length}</b> 活動</span>
         </div>
       </a>`;
   };

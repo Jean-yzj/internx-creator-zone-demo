@@ -305,25 +305,25 @@ main {
    Chip / 社群連結（沿用 Chip.module.css / SocialLinkChip.module.css）
    ===================================================================== */
 .chip {
-  display: inline-block; padding: 7px 16px; border-radius: 10px;
-  background-color: #dbeafe; color: #1e40af; font-size: 14px; font-weight: 500;
-  border: 2px solid #1d4ed8;
+  display: inline-block; padding: 7px 15px; border-radius: 999px;
+  background-color: var(--theme-white); color: var(--theme-color-black); font-size: 14px; font-weight: 500;
+  border: 1px solid #bcdcff;
 }
-.chip-confirm { background-color: #3b82f6; color: #fff; border-color: #1d4ed8; font-weight: 600; }
+.chip-confirm { background-color: var(--theme-color); color: #fff; border-color: var(--theme-color-dark); font-weight: 600; }
 .chip-pending { background-color: #fff3cd; color: #856404; border-color: #f0c36d; }
 .chip-cancel { background-color: #fde2e1; color: #b42318; border-color: #f1aeaa; }
 .chip-ghost { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
 .skillTags { display: flex; flex-wrap: wrap; gap: 8px 10px; }
 
 .socialLinkChip {
-  display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
-  border-radius: 10px; text-decoration: none; color: #1e40af; font-size: 14px;
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px;
+  border-radius: 10px; text-decoration: none; color: var(--theme-color-dark); font-size: 14px;
   margin-right: 8px; margin-bottom: 8px; transition: all .15s ease;
-  background: #dbeafe; border: 2px solid #1d4ed8; cursor: pointer;
+  background: #eaf4ff; border: 1px solid #bcdcff; cursor: pointer; font-weight: 500;
 }
-.socialLinkChip:hover { background: #bfdbfe; }
-.socialLinkChip i { font-size: 18px; }
-.socialLinkChip .username { color: #475569; }
+.socialLinkChip:hover { background: #d8ebff; border-color: var(--theme-light); }
+.socialLinkChip i { font-size: 18px; color: var(--theme-color); }
+.socialLinkChip .username { color: #6b7c93; font-weight: 400; }
 
 /* =====================================================================
    Avatar（沿用 Avatar.module.css）
@@ -406,7 +406,7 @@ main {
    個人頁 / 創作者主檔（沿用 Profile.module.css）
    ===================================================================== */
 .profile { padding: 28px 0 60px; }
-.layout { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; width: 100%; }
+.layout { display: flex; gap: 32px; align-items: stretch; flex-wrap: wrap; width: 100%; }
 .sidebar { flex: 0 0 300px; min-width: 0; display: flex; flex-direction: column; }
 .sidebarCard {
   background-color: white; border-radius: var(--border-radius); border: 1px solid #e0e0e0;
@@ -437,6 +437,7 @@ main {
 
 /* 主內容 + 分頁 */
 .main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.main .mainCard { flex: 1 1 auto; }
 .sectionTabs {
   display: flex; gap: 0; border-bottom: 1px solid #e5e7eb;
   background: #e8f4fc; border-radius: var(--border-radius) var(--border-radius) 0 0;
@@ -455,7 +456,7 @@ main {
 .mainCard {
   padding: 28px 32px; border: 1px solid #e0e0e0; border-top: none;
   border-radius: 0 0 var(--border-radius) var(--border-radius);
-  background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,.08); width: 100%; min-height: 360px;
+  background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,.08); width: 100%; min-height: 58vh;
 }
 .tabPane { display: none; }
 .tabPane.active { display: block; }
