@@ -28,6 +28,9 @@
   .doc tr:nth-child(even) td { background: #fafbfc; }
   .doc hr { border: none; border-top: 1px solid #e5e5e5; margin: 30px 0; }
   .docToolbar { position: sticky; top: calc(var(--top-bar-height) + 8px); display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 6px; z-index: 5; }
+  .archFig { margin: 6px 0 26px; padding: 18px; background: #fbfdff; border: 1px solid #e2ecf7; border-radius: 14px; text-align: center; }
+  .archFig img { width: 100%; max-width: 760px; height: auto; display: block; margin: 0 auto; }
+  .archFig figcaption { margin-top: 12px; font-size: 13px; color: #6a7686; line-height: 1.6; }
 </style>
 </head>
 <body data-page="handoff">
@@ -45,6 +48,10 @@
     <div class="docToolbar">
       <a class="btn btn-white btn-small" href="/HANDOFF.md" download><i class="ri-download-line"></i> 下載 Markdown</a>
     </div>
+    <figure class="archFig">
+      <img src="/img/architecture.svg" alt="創作者專區整體架構圖：註冊與審核管線 → 標章授予 → 創作者主頁 → 部落格／活動／專長／社群／論壇心得各系統串接" />
+      <figcaption>整體架構一覽：申請 → 審核 → <code>grantVerifiedBadgeToUser</code> 發標章 → 創作者主頁中樞 → 串接 6 大既有系統。金色虛線框為「待補」項目。</figcaption>
+    </figure>
     <div id="docBody"><p class="muted">載入中⋯</p></div>
   </div>
 </main>

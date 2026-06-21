@@ -185,6 +185,55 @@
     `);
   };
 
+  /* 檢舉彈窗（對齊既有 ReportPostPopup 結構：原因 + 身分 + 說明 + Email）*/
+  const REPORT_REASONS = {
+    profile: [
+      ["impersonation", "冒用身分／假冒他人"],
+      ["unreal", "個人資料含不實資訊"],
+      ["harassment", "騷擾或不當內容"],
+      ["spam", "廣告或垃圾訊息"],
+      ["other", "其他"],
+    ],
+    blog: [
+      ["misinfo", "文章含不實資訊"],
+      ["inappropriate", "不當或冒犯內容"],
+      ["spam", "廣告或垃圾訊息"],
+      ["copyright", "侵犯著作權"],
+      ["other", "其他"],
+    ],
+  };
+  const REPORT_ROLES = [["general", "一般使用者"], ["acquaintance", "我認識本人"], ["influenced", "曾與其互動／受影響"]];
+  window.CZ.reportModal = function (kind, name) {
+    const reasons = REPORT_REASONS[kind] || REPORT_REASONS.profile;
+    const label = kind === "blog" ? "文章" : "創作者";
+    CZ.modal(`
+      <div class="modalHero"><div class="esIcon" style="background:#fde8e6;color:#d8392b"><i class="ri-flag-2-line"></i></div></div>
+      <h3>檢舉${label}${name ? `：${name}` : ""}</h3>
+      <p class="muted" style="text-align:center;margin:-6px 0 16px;font-size:13px">送出後將由平台管理員審核（對齊既有 reports 流程）。</p>
+      <div class="modalField"><b>檢舉原因</b>
+        <div id="rptReasons" style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+          ${reasons.map((r, i) => `<label class="reportOpt"><input type="radio" name="rptReason" value="${r[0]}" ${i === 0 ? "checked" : ""}> ${r[1]}</label>`).join("")}
+        </div>
+      </div>
+      <div class="modalField"><b>您的身分</b>
+        <select class="input" id="rptRole" style="margin-top:6px">${REPORT_ROLES.map(r => `<option value="${r[0]}">${r[1]}</option>`).join("")}</select>
+      </div>
+      <div class="modalField"><b>補充說明（選填）</b>
+        <textarea class="textArea" id="rptDesc" rows="3" placeholder="請描述具體情況，協助我們審核。" style="margin-top:6px"></textarea>
+      </div>
+      <div class="modalField"><b>聯絡 Email（選填）</b>
+        <input class="input" id="rptEmail" type="email" placeholder="若需回覆審核結果" style="margin-top:6px">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+        <button class="btn btn-white btn-small" onclick="CZ.closeModal()">取消</button>
+        <button class="btn btn-small" style="background:#d8392b" onclick="CZ.submitReport()"><i class="ri-send-plane-line"></i> 送出檢舉</button>
+      </div>`);
+  };
+  window.CZ.submitReport = function () {
+    CZ.closeModal();
+    CZ.toast("檢舉已送出，我們會盡快審核（reports/processed:false）");
+  };
+
   /* ---------- Toast ---------- */
   window.CZ.toast = function (msg) {
     let t = document.getElementById("czToast");

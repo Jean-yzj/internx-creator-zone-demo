@@ -30,6 +30,10 @@ window.CZ_DATA = {
         { category: "個人品牌", skills: ["LinkedIn 經營", "內容創作", "公開演講"] },
       ],
       blogs: ["b1", "b2", "b3"], hostedEvents: ["e1", "e2", "e3"],
+      drafts: [
+        { title: "外商面試的 5 個地雷問題（草稿）", category: "面試技巧", date: "2026/06/15" },
+        { title: "給大三生的暑期實習時間軸（草稿）", category: "職涯規劃", date: "2026/06/10" },
+      ],
       activityLog: [
         { date: "2026/05/18", role: "host", title: "外商求職實戰工作坊（第 6 屆）", desc: "主辦・42 人報名・滿意度 4.8" },
         { date: "2026/04/27", role: "host", title: "履歷健診 Open Office Hour", desc: "主辦・每月固定場・18 人參與" },

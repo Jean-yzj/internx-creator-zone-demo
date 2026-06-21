@@ -56,6 +56,7 @@
     <div class="articleActions">
       <button class="likeButton" id="likeBtn"><i class="ri-heart-line"></i> 喜歡此文章</button>
       <button class="btn btn-white" onclick="CZ.toast('連結已複製')"><i class="ri-share-line"></i> 分享</button>
+      <button class="btn btn-ghost reportLink" onclick="CZ.reportModal('blog','${b.title.replace(/'/g, "\\'")}')"><i class="ri-flag-line"></i> 檢舉文章</button>
     </div>`;
 
   // 按讚互動

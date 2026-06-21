@@ -1,11 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {
-      "name": "creator-zone",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["server.js"],
-      "port": 8080
-    }
+    { "name": "cz", "runtimeExecutable": "node", "runtimeArgs": ["server.js"], "port": 8080 }
   ]
 }

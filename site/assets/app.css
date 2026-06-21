@@ -269,6 +269,8 @@ main {
 .btn-white:hover { background-color: #f7f7f7; }
 .btn-gold { background-color: var(--complementary-color); color: white; }
 .btn-gold:hover { background-color: #c98e00; }
+.btn-ghost { background: none; color: #8a93a0; border: 1px solid transparent; }
+.btn-ghost:hover { background: #f4f6f9; color: var(--cancel-color); }
 .btn-small { height: 40px; padding: 0 16px; font-size: 14px; }
 .btn-block { width: 100%; }
 
@@ -471,6 +473,20 @@ main {
 .skillGroup { margin-bottom: 22px; }
 .skillGroupTitle { font-size: 14px; color: #555; margin-bottom: 10px; font-weight: 600; }
 
+/* 空狀態保險卡 */
+.emptyState {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 48px 24px; gap: 4px;
+  border: 1px dashed #d7e2f0; border-radius: 14px; background: #fafcff; margin: 8px 0;
+}
+.emptyState .esIcon {
+  width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--theme-white); color: var(--theme-color); font-size: 30px; margin-bottom: 12px;
+}
+.emptyState h4 { margin: 0 0 6px; font-size: 16px; color: #2a3a4f; }
+.emptyState p { margin: 0; font-size: 14px; color: #8593a6; line-height: 1.6; max-width: 360px; }
+.emptyState .esCta { margin-top: 16px; }
+
 /* 認證資訊卡（VerifiedRolePitch 的展開呈現） */
 .pitchCard {
   border: 1px solid #ffe9a8; background: linear-gradient(180deg,#fffdf5,#fff8e6);
@@ -540,7 +556,8 @@ main {
   border-left: 3px solid var(--theme-color); background: #f0f0f0; margin: 22px 0;
   padding: 12px 18px; border-radius: 0 var(--border-radius) var(--border-radius) 0; color: #444;
 }
-.articleActions { margin-top: 36px; display: flex; gap: 12px; }
+.articleActions { margin-top: 36px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.articleActions .reportLink { margin-left: auto; font-size: 14px; }
 .likeButton {
   display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 999px;
   border: 1px solid var(--theme-color); background: white; color: var(--theme-color);
@@ -565,6 +582,22 @@ main {
 .fieldHint { font-size: 12.5px; color: #999; margin-top: 6px; }
 .charCount { font-size: 12px; color: #aaa; text-align: right; margin-top: 4px; }
 .charCount.over { color: var(--cancel-color); }
+
+/* 編輯主頁彈窗的分頁切換（對齊平台 Tab 切換樣式）*/
+.editTabs {
+  display: flex; gap: 4px; background: #eef5fc; border-radius: var(--border-radius);
+  padding: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.tabSwitch-btn {
+  flex: 1 0 auto; padding: 9px 14px; border: none; background: none; white-space: nowrap;
+  font-size: 14px; font-weight: 500; color: #5a6b7b; cursor: pointer;
+  border-radius: 8px; font-family: var(--font-family); transition: .15s;
+}
+.tabSwitch-btn:hover { color: var(--theme-color); }
+.tabSwitch-btn.on {
+  background: white; color: var(--theme-color); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
 .fileDrop {
   border: 2px dashed #cdd6e2; border-radius: 12px; padding: 28px; text-align: center; color: #88909c;
   background: #fafcff; cursor: pointer; transition: .15s;
@@ -592,6 +625,15 @@ main {
 }
 .tabSwitch button.activeTab { background: var(--theme-color); color: white; }
 .formActions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+
+/* 發佈成功彈窗：示範文章連動關係 */
+.publishCheck { font-size: 52px; color: var(--confirm-color); line-height: 1; margin-bottom: 4px; }
+.linkFlow { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.lfStep { display: flex; gap: 12px; align-items: flex-start; background: #f5f9ff; border: 1px solid #e1ecfb; border-radius: 12px; padding: 13px 15px; }
+.lfIco { width: 38px; height: 38px; border-radius: 10px; background: var(--theme-white); color: var(--theme-color); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+.lfStep b { display: block; font-size: 14px; color: #11243f; margin-bottom: 2px; }
+.lfStep span { display: block; font-size: 12.5px; color: #6b7686; line-height: 1.55; }
+.modal code { background: #eef2f9; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; color: #11243f; }
 
 /* =====================================================================
    活動卡（沿用 ActivityCard 樣式）
@@ -672,6 +714,36 @@ main {
 /* =====================================================================
    註冊 / 身份選擇 / 認證表單
    ===================================================================== */
+/* 創作者註冊：兩種流程說明卡 */
+.flowExplainer {
+  border: 1px solid #d9e9ff; background: linear-gradient(180deg,#f5faff 0%,#ffffff 60%);
+  border-radius: 16px; padding: 22px 24px; margin: 0 0 30px;
+}
+.feHead { display: flex; gap: 14px; align-items: flex-start; }
+.feHead > i { font-size: 26px; color: var(--theme-color); margin-top: 2px; flex-shrink: 0; }
+.feHead h2 { font-size: 20px; color: #11243f; margin: 0 0 6px; }
+.feHead p { font-size: 14px; color: #4a5568; line-height: 1.7; margin: 0; }
+.flowCompare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 14px; }
+.flowOpt { border: 1px solid #e3e8ef; border-radius: 12px; padding: 16px 18px; background: white; position: relative; }
+.flowOpt.rec { border-color: var(--theme-color); box-shadow: 0 6px 18px rgba(1,130,253,.10); }
+.foTag {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+  color: var(--theme-color); background: var(--theme-white); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+}
+.foTag.alt { color: #8a6d00; background: #fff5da; }
+.flowOpt h3 { font-size: 16px; color: #11243f; margin: 0 0 10px; }
+.foSteps { margin: 0; padding-left: 18px; }
+.foSteps li { font-size: 13.5px; color: #41506a; line-height: 1.6; margin-bottom: 6px; }
+.foNote { font-size: 12.5px; color: #6b7686; margin: 10px 0 0; display: flex; gap: 6px; align-items: flex-start; line-height: 1.55; }
+.foNote i { margin-top: 1px; flex-shrink: 0; }
+.feFoot {
+  font-size: 13px; color: #41506a; line-height: 1.65; background: #eef5ff;
+  border-radius: 10px; padding: 12px 14px; display: flex; gap: 8px; align-items: flex-start;
+}
+.feFoot i { color: var(--theme-color); margin-top: 2px; flex-shrink: 0; }
+.flowExplainer code, .feFoot code { background: #e7eefb; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; color: #11243f; }
+@media (max-width: 700px) { .flowCompare { grid-template-columns: 1fr; } }
+
 .stepper { display: flex; align-items: center; justify-content: center; gap: 0; margin: 0 auto 32px; max-width: 640px; }
 .step { display: flex; align-items: center; gap: 8px; flex: 1; }
 .step .dot {
@@ -752,6 +824,31 @@ main {
 .modalField b { display: block; font-size: 12.5px; color: #9a7a14; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 5px; }
 .modalField p { margin: 0; font-size: 14.5px; color: #333; line-height: 1.65; }
 .modalClose { display: flex; justify-content: flex-end; margin-top: 18px; }
+.reportOpt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e6e6e6; border-radius: 10px; font-size: 14px; color: #333; cursor: pointer; transition: .12s; line-height: 1.4; }
+.reportOpt:hover { background: #fafcff; border-color: #cfe0f5; }
+.reportOpt input { margin-top: 2px; accent-color: var(--theme-color); }
+.modal { max-height: 88vh; overflow-y: auto; }
+/* sidebar 操作選單（檢舉/分享） */
+.moreMenu { position: relative; }
+.moreBtn { width: 100%; }
+.morePop { position: absolute; right: 0; left: 0; top: calc(100% + 6px); background: white; border: 1px solid #e6e6e6; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px; z-index: 20; display: none; }
+.morePop.show { display: block; }
+.morePop button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border: none; background: transparent; border-radius: 7px; font-size: 14px; color: #333; cursor: pointer; text-align: left; }
+.morePop button:hover { background: #f5f5f5; }
+.morePop button.danger { color: #d8392b; }
+.morePop button.danger i { color: #d8392b; }
+/* 我的文章管理列 */
+.manageRow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 10px; background: white; }
+.manageRow .mInfo { flex: 1; min-width: 0; }
+.manageRow .mTitle { font-weight: 600; font-size: 14.5px; color: #1a2a3f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.manageRow .mMeta { font-size: 12px; color: #8593a6; margin-top: 3px; }
+.manageRow .mActions { display: flex; gap: 4px; flex-shrink: 0; }
+.manageRow .mActions button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #eee; background: white; color: #667; cursor: pointer; }
+.manageRow .mActions button:hover { background: #f5f5f5; color: var(--theme-color); }
+.statusTag { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.statusTag.published { background: #e6f9e6; color: #1f9d1f; }
+.statusTag.draft { background: #fff3cd; color: #8a6d12; }
+.statusTag.archived { background: #eee; color: #777; }
 
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);

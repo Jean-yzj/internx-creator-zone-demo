@@ -2,7 +2,8 @@
 
 > InternX 實習通 — 創作者專區（Creator Zone）前端 Demo 與後端串接規格
 > 對象：接手實作的前端 / 後端工程師
-> 版本：v2（2026-06）｜本文所有程式碼片段均**逐字摘自** `internx-me/frontend`，並標註 `檔案:行號`
+> 版本：v3（2026-06）｜新增 §3.0 註冊兩案、§10 個人頁編輯、§11 檢舉機制、§12 追蹤/通知、整體架構圖
+> 本文既有程式碼片段均**逐字摘自** `internx-me/frontend` 並標註 `檔案:行號`；標「待補」者為建議新增（彙整於 §19）
 > 配套 Demo：本 repo `site/`（純前端、假資料、無後端）｜線上：https://internx-creator-zone.zeabur.app
 
 ---
@@ -20,15 +21,18 @@
 | LinkedIn / IG | `socialLinks` + `SocialLinkChip` + `SOCIAL_PLATFORMS` | `components/Chip/SocialLinkChip.tsx`、`lib/config.js`、`lib/util.js` |
 | 主辦活動 / 活動紀錄 | `Activity`（`createdBy`）+ `Registration`（`userUid`）| `data/activity.ts`、`data/registration.ts` |
 | 論壇 / 心得 / 人脈 顯示標籤 | `MergedSenderBadges` / `MergedSenderAvatar` / `PostBottom` | `components/Badge/*`、`components/Post/*` |
+| 個人頁編輯（§10）| `ProfileEditPopup` / `SkillsEditPopup` / `LinksEditPopup` + `RealProfile.save()` | `components/Profile/*` |
+| 檢舉創作者 / 文章（§11）| 沿用 admin 審核佇列模式；`reports` 集合與 `/admin/reports` **待補** | `data/report.ts`（待補） |
+| 追蹤 / 通知（§12）| `Connection`（雙向）+ `addSideNotification`；單向 follow 與發文扇出 **待補** | `data/connection.ts` |
 
 **三件主要工作：**
-1. **註冊**：在 `onboarding.jsx` 的 `steps` 陣列插入一個「身分選擇」步驟，把「創作者」接到既有的 `submitVerifiedRoleApplication()`。
+1. **註冊**：創作者**不是獨立註冊線**。建議「一般註冊 → 事後於 `/dashboard/verified-role-apply` 申請」（方案 A，現況）；或在 `onboarding.jsx` 的 `steps` 插入「身分選擇」步驟（方案 B，Demo 示範）。兩者都接到既有 `submitVerifiedRoleApplication()`（§3）。
 2. **創作者主頁**：在 `Profile.tsx` 用既有的 `activeSectionTab` 機制新增 3 個分頁（部落格 / 主辦活動 / 活動紀錄），資料分別以 `userId` / `createdBy` / `userUid` 撈取。
 3. **發佈權**：把目前 admin-only 的部落格發佈權，放寬給帶有 `verified-creator` 標章的使用者（一行條件即可）。
 
-其餘（專長、社群連結、論壇/心得/人脈 標章）都是「把既有元件接上資料」。
+其餘（專長、社群連結、論壇/心得/人脈 標章、**個人頁編輯**）都是「把既有元件接上資料」；**檢舉、單向追蹤、發文通知扇出**為少數需新增的後端（§11／§12／§19）。
 
-> 標示「**待補**」的項目代表現有程式碼尚無對應方法或欄位，需要新增；本文第 16 節彙整所有缺口。
+> 標示「**待補**」的項目代表現有程式碼尚無對應方法或欄位，需要新增；本文第 19 節彙整所有缺口。
 
 ---
 
@@ -39,6 +43,9 @@
 - **標章（`profiles.badges`）**：真正決定「是否為認證創作者」的，是 `badges` 陣列是否含 `verified-creator`。由後端在審核通過時寫入。
 
 ### 1.2 資料流（申請 → 審核 → 標章 → 呈現）
+
+> **整體架構圖**：見 [`site/img/architecture.svg`](img/architecture.svg)（線上 handoff 頁頂部亦內嵌）。圖中以**金色虛線框**標示「待補」節點，實線為既有系統。
+
 ```
 使用者填認證表單
    │  submitVerifiedRoleApplication(db, uid, input)
@@ -174,6 +181,18 @@ export interface RegistrationData {
 
 ## 3. 功能一：註冊與身份識別
 
+### 3.0 先回答：「創作者是走另一條註冊流程嗎？」
+**不是。** 創作者沒有獨立的註冊入口——所有人都用同一個註冊／onboarding，差別只在「**何時**」取得 `verified-creator` 標章。有兩種接法，兩者**共用同一張認證表單與審核機制**（§3.4／§3.5）：
+
+| | 方案 A — 事後申請（**平台現況・建議**）| 方案 B — 註冊時選身分（**Demo 示範**）|
+|---|---|---|
+| 流程 | 一般註冊 → 完成 onboarding → 正常使用 → 想當創作者時再申請 | onboarding 中插入「選擇身分」一步，選創作者即送審 |
+| 申請入口 | 既有路由 `/[lang]/dashboard/verified-role-apply` | onboarding step 內嵌認證表單 |
+| 優點 | 註冊零阻力、不擋一般使用者；改動最小 | 創作者意圖明確、引導完整 |
+| 代價 | 創作者需多一次主動申請 | 拉長註冊漏斗；需改 onboarding step 索引（§3.2）|
+
+> **建議採方案 A**（現況已支援，幾乎免改 onboarding）。下面 §3.2 仍提供方案 B 的精確插入做法，因為 Demo `register.html` 示範的是方案 B 的選擇介面；兩案後端完全相同。
+
 ### 3.1 現有 onboarding 結構（`pages/[lang]/account/onboarding.jsx`）
 ```javascript
 // 526
@@ -200,7 +219,7 @@ const [currentStep, setCurrentTab] = useState(0);
 ```
 - 因為前進都用相對的 `setCurrentTab(currentStep + 1)`，**插入後所有現有步驟索引自動後移**，不需改其他前進邏輯。
 - **唯一要改**：跳過按鈕（125 行）原本 `setCurrentTab(5)`（直接到完成），新增一步後完成頁變 index 6，請改成 `setCurrentTab(6)`。
-- 新增 `users.userRole` 欄位（**待補**，§16）。
+- 新增 `users.userRole` 欄位（**待補**，§19）。
 
 ### 3.3 既有身分驗證可直接沿用（「填寫讓我們可以驗證的東西」）
 學生信箱驗證流程已存在：
@@ -282,7 +301,7 @@ rejectVerifiedRoleApplication(db, adminUid, applicationId, note)  // status="rej
 |---|---|
 | 個人頁側欄 | `<ProfileBadge badgeType="verified-creator" size="small" verifiedRolePitch={profileInstance?.verifiedRolePitch ?? null} resolvePitchUserId={targetUserId} />`（`Profile.tsx:828-841`） |
 | 論壇訊息 / 貼文作者列 | `<MergedSenderBadges senderId={post.senderId} senderBadges={post.badges} show />` |
-| 部落格作者署名 | 同上（**待補**，見 §6.3） |
+| 部落格作者署名 | 同上（**待補**，見 §5.3） |
 
 `ProfileBadge` 內：`getVerifiedRolePillIconName("verified-creator") === "quill-pen-line"`；點膠囊開 `VerifiedRolePitchModal` 顯示 `organizationText` + `experienceText`。側欄標章來源：
 ```javascript
@@ -307,7 +326,7 @@ const canCreate = appStates.userData?.admin
   || (appStates.userData?.badges?.includes('verified-creator') ?? false);
 if (!canCreate) { /* deny */ }
 ```
-三處都改成 `canCreate`。Firestore 規則同步放寬（§12）。
+三處都改成 `canCreate`。Firestore 規則同步放寬（§15）。
 
 ### 5.2 撰寫與儲存（逐字 API）
 ```typescript
@@ -315,7 +334,7 @@ if (!canCreate) { /* deny */ }
 BlogPost.create(db, blogData, authorId, authorName): Promise<string>
 //   authorId = appStates.user.uid
 //   authorName = appStates.userProfile?.nickname || "管理員"   // create.tsx 52-57
-//   ⚠ authorAvatar 不會自動帶入，需自行放進 blogData（待補，§16）
+//   ⚠ authorAvatar 不會自動帶入，需自行放進 blogData（待補，§19）
 // slug 由標題前端產生（BlogCreate.tsx 158-162，只保留 a-z0-9 與中日韓字）
 // 標題唯一（blog.ts 196-216）；slug 不檢查唯一
 ```
@@ -435,7 +454,110 @@ const [activeSectionTab, setActiveSectionTab] = useState(0);
 
 ---
 
-## 10. 路由表
+## 10. 功能七：個人頁面編輯（創作者如何編輯自己的主頁）
+
+### 10.1 編輯入口與權限（forSelf）
+創作者主頁以「**是否為本人**」決定 UI：當 `appStates.user?.uid === profileId`（既有 `Profile.tsx` 的 `isOwnProfile` 判斷）時，側欄顯示「**編輯主頁**」+「預覽訪客視角」；否則顯示訪客操作（追蹤／私訊／更多）。**不需新做權限系統**，沿用既有判斷即可。
+
+### 10.2 直接重用既有編輯彈窗（不必重寫）
+平台個人頁編輯元件已存在，創作者主頁的編輯沿用同一批彈窗：
+
+| 編輯區塊 | 既有元件 | 寫入位置 |
+|---|---|---|
+| 基本資料（顯示名稱／headline／學校／自介） | `ProfileEditPopup`（`components/Profile/*`） | `profiles.{nickname,...}` + `subprofiles/realProfile` |
+| 專長（分類 + 技能） | `SkillsEditPopup` | `subprofiles/realProfile.currentSkills[]` |
+| 社群連結（LinkedIn／IG／個人網站） | `LinksEditPopup` | `subprofiles/realProfile.socialLinks[]` |
+
+儲存統一走既有 `RealProfile.save()`／`profile.save()`：**同時寫 `profiles` 與 `subprofiles/realProfile` 兩份文件**（與標章授予寫入的是同一份 realProfile，資料一致）。技能值用 `extractSkillDisplayValue()` 解析顯示；社群只存 `{platform, username}`，網址由 `getSocialLinkUrl()` 即時產生（§7.2）。
+
+### 10.3 認證資訊為唯讀（重要安全點）
+「所在產業／經歷」(`verifiedRolePitch`) 由審核流程寫入，**創作者不可自行編輯**——否則認證內容會被竄改，金標就失去意義。編輯彈窗中此區顯示為鎖定唯讀，並提示「要更新請重新送認證申請」。後端由 §15 的 Firestore 規則擋住使用者改 `badges` / `verifiedRolePitch`（雙保險：UI 唯讀 + 規則禁寫）。
+
+> Demo 對應：creator.html「編輯我的頁面」彈窗（4 分頁：基本資料／專長／社群連結／認證資訊）。前三頁可即時編輯（新增/刪除技能、增刪社群連結），第 4 頁「認證資訊」為金色鎖定卡，明示 `profiles.verifiedRolePitch` 僅後端可寫。側欄另有「預覽訪客視角」(`?as=visitor`) 切換，方便創作者確認對外呈現。
+
+---
+
+## 11. 功能八：檢舉機制（檢舉創作者 / 檢舉文章）
+
+> **誠實標註**：平台貼文（論壇／心得）已有檢舉入口與管理員審核佇列（如 `/admin/verified-role-applications` 即同款 admin queue 模式）。但針對「**創作者個人頁**」與「**部落格文章**」的檢舉**目前為待補**（§19），以下為建議實作；資料模型與 admin 頁需新增。
+
+### 11.1 建議資料模型（新增 `reports` 集合）
+```typescript
+export type ReportTargetType = "profile" | "blog" | "post" | "activity";
+export type ReportReason =
+  | "impersonation"      // 冒用身分／假冒他人（profile）
+  | "misinformation"     // 不實資訊
+  | "harassment"         // 騷擾或不當內容
+  | "spam"               // 廣告／垃圾訊息
+  | "copyright"          // 侵犯著作權（blog）
+  | "inappropriate"      // 不當或冒犯內容（blog）
+  | "other";
+export interface ReportData {
+  id: string;
+  targetType: ReportTargetType;
+  targetId: string;            // 被檢舉的 profileId / blogId
+  reporterUid?: string;        // 檢舉人（允許匿名）
+  reporterRole?: "general" | "acquaintance" | "influenced";  // 您的身分
+  reason: ReportReason;
+  description?: string;        // 補充說明，max 1000
+  contactEmail?: string;       // 選填，回覆審核結果用
+  processed: boolean;          // 預設 false → 管理員處理後設 true
+  createdAt: Date; reviewedAt?: Date; reviewedBy?: string;
+  action?: "none" | "warned" | "content-removed" | "badge-revoked" | "banned";
+}
+```
+
+### 11.2 檢舉流程（前端 → 後端 → 管理 → 處置）
+```
+訪客點「檢舉這位創作者 / 檢舉文章」
+  → 彈窗：選原因（依 profile/blog 切換選項）+ 您的身分 + 補充說明 +（選填）聯絡 Email
+  → createReport({ targetType, targetId, reason, reporterRole, description })   // 待補
+  → 寫入 reports/{id}（processed:false）
+  → 前端提示「檢舉已送出，我們會盡快審核」
+  → 管理員於 /admin/reports（待補頁）逐筆處理 → 設 processed:true + action
+  → 嚴重者處置：
+       下架文章 → BlogPost.updateStatus(db, id, 'archived')        // blog.ts:954（已存在）
+       撤銷標章 → revokeVerifiedBadgeFromUser(...)                  // 待補（§19）
+```
+
+### 11.3 原因選項（前端依被檢舉對象切換）
+| 對象 | 提供的原因 |
+|---|---|
+| 創作者個人頁 (`profile`) | 冒用身分／假冒他人、個人資料含不實資訊、騷擾或不當內容、廣告或垃圾訊息、其他 |
+| 部落格文章 (`blog`) | 文章含不實資訊、不當或冒犯內容、廣告或垃圾訊息、侵犯著作權、其他 |
+
+### 11.4 與既有審核機制對稱
+「撤標章」建議新增 `revokeVerifiedBadgeFromUser`，與既有 `grantVerifiedBadgeToUser`（§3.5）對稱（移除 `profiles.badges` 的 `verified-creator` + 清 `verifiedRolePitch`）。「下架文章」直接用既有 `BlogPost.updateStatus(... 'archived')`，**不需新做**。
+
+> Demo 對應：creator.html 訪客側欄「更多 → 檢舉這位創作者 / 封鎖」、blog-article.html「檢舉文章」。兩者共用 `CZ.reportModal(kind, name)`，`kind` 為 `profile`/`blog` 時切換原因清單；送出後 toast 提示對應 `reports` 集合 `processed:false`。
+
+---
+
+## 12. 功能九：追蹤與通知
+
+### 12.1 追蹤（單向 Follow）≠ 人脈（雙向 Connection）
+平台既有 `Connection`（人脈，`data/connection.ts`）是**雙向**關係（需互相同意）。創作者「追蹤」語意是**單向**關注（不需對方同意），兩者不同：
+- 直接沿用 `Connection` 不完全符合（它是雙向）。建議**新增單向 follow 邊**（`follows/{followerUid}_{creatorUid}` 或在 realProfile 存 `followerUids[]`/`followingUids[]`），§19 待補。
+- 追蹤數（Demo 顯示 `1,284`）對應 `followerCount`（待補欄位，或即時 aggregate count）。
+
+### 12.2 通知（Notification）
+平台已有站內通知能力：`appStates.addSideNotification(...)`（即時側邊提示，已存在）。持久化的 `Notification` 文件模型待確認/補齊。創作者相關通知建議：
+
+| 觸發 | 收件人 | 文案 |
+|---|---|---|
+| 認證通過／駁回 | 申請者 | 見 §16 通知文案 |
+| 創作者發新文章 | 全部追蹤者 | `{creator} 發佈了新文章：{title}` |
+| 被追蹤 | 創作者 | `{user} 開始追蹤你` |
+| 檢舉處理完成 | 檢舉人（若留 uid/email） | `您檢舉的內容已處理` |
+
+### 12.3 發文 → 通知扇出
+創作者發佈文章（`BlogPost.create` + `status:published`）後，需對所有追蹤者扇出通知。**建議用 server-side hook**（Cloud Function `onBlogPublished`，待補）批次寫 `Notification`，避免前端逐筆寫造成大量 client 寫入。
+
+> Demo 對應：creator.html 訪客「追蹤」按鈕（toggle「追蹤中 ↔ 已追蹤」+ 追蹤數即時 ±1）；blog-editor.html 發佈成功彈窗第 3 點「追蹤者的通知與動態」即示意此扇出。
+
+---
+
+## 13. 路由表
 
 ### 既有（直接重用）
 ```
@@ -462,19 +584,23 @@ const [activeSectionTab, setActiveSectionTab] = useState(0);
 
 ---
 
-## 11. Demo 頁面 ↔ 真實實作 對照
+## 14. Demo 頁面 ↔ 真實實作 對照
 
 | Demo 頁面 | 對應真實元件 / 路由 |
 |---|---|
 | `index.html` / `directory.html` | 新增 `/[lang]/creators` |
 | `creator.html` | `/[lang]/user/[id]` + `Profile.tsx`（新增分頁） |
 | `blog.html` / `blog-article.html` / `blog-editor.html` | `/[lang]/blog`、`/blog/[slug]`、`/blog/create` + `BlogPostsGrid` / `BlogView` / `BlockEditor` |
-| `register.html` | `/[lang]/account/onboarding` 身分選擇 + `submitVerifiedRoleApplication` |
+| `register.html`（方案 A/B 流程說明 + stepper）| `/[lang]/account/onboarding`（方案 B）或 `/dashboard/verified-role-apply`（方案 A）+ `submitVerifiedRoleApplication` |
+| creator.html「編輯我的頁面」彈窗 | `ProfileEditPopup` / `SkillsEditPopup` / `LinksEditPopup` + `RealProfile.save()` |
+| creator.html「檢舉創作者」、blog-article.html「檢舉文章」 | `createReport()` + `reports` 集合（待補，§11）|
+| creator.html「追蹤」按鈕、blog-editor 發佈成功彈窗 | 單向 follow + 發文通知扇出（待補，§12）|
+| blog-editor 發佈成功「三個出現位置」 | `authorId` 連動：`fetchUserPosts` / `/blog` 列表 / 追蹤者通知 |
 | 金色標籤 | `ProfileBadge` + `VerifiedRolePitchModal` |
 
 ---
 
-## 12. Firestore 安全規則
+## 15. Firestore 安全規則
 
 > **重要**：`internx-me/frontend` repo **沒有** `firestore.rules`，規則放在另一個 repo `internx-me/firebase-contents`。以下為**建議要加/確認**的規則（請在該 repo 設定）。
 
@@ -507,17 +633,17 @@ match /blogPosts/{id} {
 
 ---
 
-## 13. 通知文案（建議）
+## 16. 通知文案（建議）
 - 送出申請：`認證創作者申請已送出 — 我們將於 3–5 個工作天內審核。`
 - 核准：`恭喜！您已成為認證創作者 — 已解鎖創作者主頁與部落格發佈。` → CTA `/[lang]/user/[uid]`
 - 駁回：`認證創作者申請結果 — {reviewNote}。可於 30 天後重新申請。`
 
 ---
 
-## 14. 實作順序與檢查清單
+## 17. 實作順序與檢查清單
 
 **Phase 1 — 身分與標章（後端大多已就緒）**
-- [ ] `users` 加 `userRole` 欄位（§16）
+- [ ] `users` 加 `userRole` 欄位（§19）
 - [ ] onboarding 插入身分選擇 step；跳過按鈕 `setCurrentTab(5)` → `setCurrentTab(6)`
 - [ ] 串 `submitVerifiedRoleApplication()`；顯示「待審核中」
 - [ ] 驗證審核 → `approveVerifiedRoleApplication` → 個人頁金標顯示
@@ -526,25 +652,35 @@ match /blogPosts/{id} {
 - [ ] `Profile.tsx` 新增 部落格 / 主辦活動 / 活動紀錄 三分頁（§9）
 - [ ] 部落格串 `BlogPost.fetchUserPosts`
 - [ ] 主辦活動串 `Activity.fetchUserActivities`
-- [ ] 活動紀錄：新增 `getRegistrationsByUserUid`（§16）後串接
+- [ ] 活動紀錄：新增 `getRegistrationsByUserUid`（§19）後串接
 
 **Phase 3 — 內容發佈與串接**
 - [ ] `blog/create.tsx` 三處 admin 檢查改為 `canCreate`（§5.1）
 - [ ] `BlogView.tsx` byline 補 `MergedSenderBadges`（§5.3）
 - [ ] 確認論壇/心得/人脈 作者列標章（多為既有，驗證即可）
 
-**Phase 4 — 專區入口**
+**Phase 4 — 個人頁編輯（多為既有元件）**
+- [ ] 創作者主頁接 `ProfileEditPopup` / `SkillsEditPopup` / `LinksEditPopup`（§10）
+- [ ] 確認認證資訊區唯讀（`verifiedRolePitch` 不可前端寫）
+
+**Phase 5 — 檢舉與追蹤（需新增後端）**
+- [ ] 新增 `reports` 集合 + `createReport()` + `/admin/reports` 處理頁（§11）
+- [ ] 新增 `revokeVerifiedBadgeFromUser()`（檢舉處置／違規撤標章，§11）
+- [ ] 單向 follow（`follows` 邊或 `followerUids[]`）+ `followerCount`（§12）
+- [ ] 發文通知扇出 Cloud Function `onBlogPublished`（§12）
+
+**Phase 6 — 專區入口**
 - [ ] 新增 `/[lang]/creators` 首頁 + 探索頁
 - [ ] `TOP_BAR_TABS` 加入創作者入口
 
-**Phase 5 — 通知 / 分析 / 規則**
+**Phase 7 — 通知 / 分析 / 規則**
 - [ ] 核准/駁回 Email + 站內通知
-- [ ] `firebase-contents` 補/確認安全規則（§12）
-- [ ] 埋分析事件（§17）
+- [ ] `firebase-contents` 補/確認安全規則（§15）
+- [ ] 埋分析事件（§20）
 
 ---
 
-## 15. 元件 / 函式速查
+## 18. 元件 / 函式速查
 
 | 用途 | 簽名 | 檔案:行 |
 |---|---|---|
@@ -560,21 +696,36 @@ match /blogPosts/{id} {
 | 抓某活動報名 | `Registration.getRegistrationsByActivityId(db, activityId)` | registration.ts:429 |
 | 社群網址 | `getSocialLinkUrl(platform, username)` | util.js:338 |
 | senderId→uid | `profileUserIdFromSenderId(senderId)` | profile.ts:773 |
+| 存個人檔案 | `RealProfile.save()` / `profile.save()`（編輯主頁，§10）| `data/profile.ts` |
+
+**待補函式（本文建議新增，無既有 file:line）：**
+
+| 用途 | 建議簽名 | 對應節 |
+|---|---|---|
+| 以 userUid 撈報名 | `Registration.getRegistrationsByUserUid(db, userUid)` | §6 |
+| 建立檢舉 | `createReport({ targetType, targetId, reason, ... })` | §11 |
+| 撤銷標章 | `revokeVerifiedBadgeFromUser(db, adminUid, uid, badge)` | §11 |
+| 追蹤 / 取消 | `followCreator(db, uid, creatorId)` / `unfollow(...)` | §12 |
+| 發文通知扇出 | Cloud Function `onBlogPublished(blogPost)` | §12 |
 
 ---
 
-## 16. 已知缺口 / 待補（重要）
+## 19. 已知缺口 / 待補（重要）
 
 1. **`users.userRole` 欄位**：目前 `users`（`data/user.ts`）沒有此欄位，需新增（`student | professional | creator`）。標章判定仍以 `profiles.badges` 為準，`userRole` 僅供分析/gating。
 2. **`getRegistrationsByUserUid`**：`Registration` 目前只有 `loadByUserAndActivity` 與 `getRegistrationsByActivityId`，缺「以 userUid 撈某人所有報名」的方法，需新增才能做「活動紀錄」分頁。
 3. **部落格 byline 標章**：`BlogView.tsx` 目前不顯示標章，需依 §5.3 補 `MergedSenderBadges`。
 4. **`authorAvatar` 未自動帶入**：`BlogPost.create` 不會自動塞作者頭像，需在 `blogData` 顯式帶入，否則文章卡/署名無頭像。
-5. **Firestore 規則不在本 repo**：在 `internx-me/firebase-contents`，依 §12 補/確認。
+5. **Firestore 規則不在本 repo**：在 `internx-me/firebase-contents`，依 §15 補/確認。
 6. **slug 不檢查唯一**：只有標題唯一檢查；若擔心 slug 撞號，建立時可加後綴（如短 id）。
+7. **檢舉（profile / blog）**：目前無對應集合。需新增 `reports` 集合、`createReport()`、`/admin/reports` 處理頁（§11）。貼文層級檢舉雖已有，但 profile/blog 為新建。
+8. **撤標章 `revokeVerifiedBadgeFromUser`**：與 `grantVerifiedBadgeToUser` 對稱，供檢舉處置／違規時移除 `verified-creator` 標章 + 清 `verifiedRolePitch`，需新增（§11）。
+9. **單向追蹤 Follow**：既有 `Connection` 為雙向人脈，單向「追蹤」需新增 follow 邊（`follows/{follower}_{creator}` 或 `followerUids[]`/`followingUids[]`）與 `followerCount`（§12）。
+10. **發文通知扇出**：發佈文章後對追蹤者批次通知，建議用 Cloud Function `onBlogPublished` server-side 寫 `Notification`，避免前端逐筆寫（§12）。`Notification` 持久化模型亦需確認/補齊。
 
 ---
 
-## 17. 測試清單（建議）
+## 20. 測試清單（建議）
 
 - [ ] 註冊選「創作者」→ 送出 → `verifiedRoleApplications` 出現 pending；重送被擋（一人一筆）。
 - [ ] 管理員核准 → `profiles.badges` 含 `verified-creator`、`verifiedRolePitch` 寫入；個人頁金標出現、點開有 pitch。
@@ -584,11 +735,15 @@ match /blogPosts/{id} {
 - [ ] 創作者主頁：部落格/主辦活動/活動紀錄三分頁皆有資料且數字一致。
 - [ ] 論壇/心得 的作者列出現金標。
 - [ ] LinkedIn/IG chip 連到正確網址（`linkedin.com/in/...`、`instagram.com/...`）。
+- [ ] 本人看自己主頁顯示「編輯主頁」；改基本資料/專長/社群後 `realProfile` 同步；認證資訊區唯讀無法改。
+- [ ] 訪客檢舉創作者 / 文章 → `reports/{id}` 出現 `processed:false`；管理員處理後 `processed:true` + `action`。
+- [ ] 追蹤創作者 → `followerCount` +1、出現在追蹤清單；取消追蹤 -1。
+- [ ] 創作者發新文章 → 追蹤者收到通知（站內 + 可選 Email）。
 - [ ] 手機版（≤390px）各頁無水平溢出，分頁列可水平捲動。
 
 ---
 
-## 18. 分析事件（建議）
+## 21. 分析事件（建議）
 - `creator_role_selected`（onboarding 選身分）
 - `creator_application_submitted` / `_approved` / `_rejected`（含 time-to-approval）
 - `creator_blog_published`、`creator_profile_view`、`creator_followed`

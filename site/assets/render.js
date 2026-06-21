@@ -5,6 +5,19 @@
   const D = window.CZ_DATA;
   const R = (window.CZ = window.CZ || {});
 
+  // 空狀態保險卡（任一分頁無資料時的友善提示）
+  R.emptyState = function (opts) {
+    opts = opts || {};
+    const cta = opts.ctaText
+      ? `<a class="btn btn-white btn-small esCta" href="${opts.ctaHref || '#'}"${opts.ctaHref ? '' : ' onclick="CZ.toast(\'平台既有功能\');return false"'}><i class="ri-${opts.ctaIcon || 'add-line'}"></i> ${opts.ctaText}</a>`
+      : "";
+    return `<div class="emptyState">
+      <div class="esIcon"><i class="ri-${opts.icon || 'inbox-line'}"></i></div>
+      <h4>${opts.title || '還沒有內容'}</h4>
+      <p>${opts.desc || ''}</p>${cta}
+    </div>`;
+  };
+
   // 角色標章膠囊（沿用 ProfileBadge）
   R.badgePill = function (creator, opts) {
     opts = opts || {};
