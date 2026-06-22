@@ -724,6 +724,7 @@ main {
 .feHead h2 { font-size: 20px; color: #11243f; margin: 0 0 6px; }
 .feHead p { font-size: 14px; color: #4a5568; line-height: 1.7; margin: 0; }
 .flowCompare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 14px; }
+.flowCompare.three { grid-template-columns: repeat(3, 1fr); }
 .flowOpt { border: 1px solid #e3e8ef; border-radius: 12px; padding: 16px 18px; background: white; position: relative; }
 .flowOpt.rec { border-color: var(--theme-color); box-shadow: 0 6px 18px rgba(1,130,253,.10); }
 .foTag {
@@ -742,7 +743,7 @@ main {
 }
 .feFoot i { color: var(--theme-color); margin-top: 2px; flex-shrink: 0; }
 .flowExplainer code, .feFoot code { background: #e7eefb; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; color: #11243f; }
-@media (max-width: 700px) { .flowCompare { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .flowCompare, .flowCompare.three { grid-template-columns: 1fr; } }
 
 .stepper { display: flex; align-items: center; justify-content: center; gap: 0; margin: 0 auto 32px; max-width: 640px; }
 .step { display: flex; align-items: center; gap: 8px; flex: 1; }

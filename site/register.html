@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>申請成為創作者｜InternX 創作者專區</title>
+<title>註冊與身分｜InternX 創作者專區</title>
 <link rel="icon" href="/favicon.png" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" />
 <link rel="stylesheet" href="/assets/app.css" />
@@ -13,54 +13,49 @@
 <main>
   <div class="cz-narrow" style="padding:36px 0 64px">
 
-    <!-- 流程說明：回答「創作者是不是走另一條註冊流程？」 -->
+    <!-- 流程說明：回答「創作者／主辦單位要不要走另一條註冊流程？」 -->
     <div class="flowExplainer">
       <div class="feHead">
         <i class="ri-route-line"></i>
         <div>
-          <h2>創作者註冊：走哪一條路？</h2>
-          <p>創作者<strong>不是</strong>一條獨立的註冊流程。所有人都用<strong>同一個註冊入口</strong>，差別只在「<strong>何時</strong>」取得「認證創作者」標章。下面兩種方案共用同一張認證表單與審核機制。</p>
+          <h2>創作者 / 主辦單位：走哪一條註冊路？</h2>
+          <p>不必為每種人各做一套註冊。<strong>一個入口、一套帳號，先選身分，表單再分支</strong> — 只有<strong>學生</strong>會看到學校 / 學校信箱，<strong>創作者</strong>和<strong>主辦單位</strong>直接跳過，只填自己需要的。</p>
         </div>
       </div>
-      <div class="flowCompare">
+      <div class="flowCompare three">
+        <div class="flowOpt">
+          <div class="foTag"><i class="ri-graduation-cap-line"></i> 學生</div>
+          <h3>填：學校 + 學校信箱</h3>
+          <p class="foNote"><i class="ri-information-line"></i> 學校信箱選填，用於媒合實習與驗證學生身分。</p>
+        </div>
         <div class="flowOpt rec">
-          <div class="foTag"><i class="ri-star-line"></i> 平台現況・建議</div>
-          <h3>方案 A — 事後申請</h3>
-          <ol class="foSteps">
-            <li>一般註冊（Email／Google）→ 完成 onboarding → 正常使用</li>
-            <li>想成為創作者時，到「設定 → 申請認證創作者」</li>
-            <li>對應路由 <code>/dashboard/verified-role-apply</code></li>
-          </ol>
-          <p class="foNote"><i class="ri-thumb-up-line"></i> 註冊零阻力，不擋一般使用者；創作者只是「加掛」的身分。</p>
+          <div class="foTag"><i class="ri-quill-pen-line"></i> 認證創作者</div>
+          <h3>填：認證表單 → 送審</h3>
+          <p class="foNote"><i class="ri-checkbox-circle-line"></i> 跳過學生欄位。對應 verifiedRoleApplications，通過發金標。</p>
         </div>
         <div class="flowOpt">
-          <div class="foTag alt"><i class="ri-cursor-line"></i> 本頁示範</div>
-          <h3>方案 B — 註冊時選身分</h3>
-          <ol class="foSteps">
-            <li>在 onboarding 插入一步「選擇身分」</li>
-            <li>選「認證創作者」→ 直接進入下方認證表單</li>
-            <li>送審後可正常使用，通過才解鎖主頁</li>
-          </ol>
-          <p class="foNote"><i class="ri-error-warning-line"></i> 引導完整、創作者意圖明確；代價是拉長註冊漏斗。</p>
+          <div class="foTag"><i class="ri-calendar-event-line"></i> 活動主辦單位</div>
+          <h3>填：單位名稱 + 聯絡方式</h3>
+          <p class="foNote"><i class="ri-flashlight-line"></i> 輕量、免公司 / 統編驗證，送出即可辦活動。</p>
         </div>
       </div>
-      <div class="feFoot"><i class="ri-information-line"></i><span>下方示範的是<strong>方案 B 的選擇介面</strong>。無論哪一種，後端都走 <code>verifiedRoleApplications</code> 申請 → 管理員審核 → <code>grantVerifiedBadgeToUser</code> 發標章。建議實作採<strong>方案 A</strong>。</span></div>
+      <div class="feFoot"><i class="ri-information-line"></i><span><strong>關鍵</strong>：身分選擇要放在「基本資料」<strong>之前</strong>，非學生才不會被學校欄位卡住。三種共用同一個註冊入口與帳號層，只是欄位依身分顯示；後端創作者走 <code>verifiedRoleApplications</code> 送審，學生與主辦單位輕量完成。</span></div>
     </div>
 
     <!-- 步驟列 -->
     <div class="stepper" id="stepper">
       <div class="step active" data-s="1"><span class="dot">1</span><span class="lbl">選擇身分</span></div>
       <div class="bar"></div>
-      <div class="step" data-s="2"><span class="dot">2</span><span class="lbl">填寫認證資訊</span></div>
+      <div class="step" data-s="2"><span class="dot">2</span><span class="lbl">填寫資料</span></div>
       <div class="bar"></div>
-      <div class="step" data-s="3"><span class="dot">3</span><span class="lbl">送審完成</span></div>
+      <div class="step" data-s="3"><span class="dot">3</span><span class="lbl">完成</span></div>
     </div>
 
     <!-- STEP 1：身分選擇 -->
     <section id="step1">
       <div class="cz-section-head center" style="margin-bottom:22px">
         <h2 class="cz-section-title" style="font-size:26px">您想以什麼身分加入實習通？</h2>
-        <p class="cz-section-sub" style="margin:6px auto 0">身分可在設定中調整。選擇「認證創作者」可申請專屬標章與創作者主頁。</p>
+        <p class="cz-section-sub" style="margin:6px auto 0">先選身分，下一步只會出現你需要填的欄位 — 只有學生才有學校相關欄位。</p>
       </div>
       <div class="roleGrid">
         <div class="roleCard" data-role="student">
@@ -69,66 +64,43 @@
           <h4>學生</h4>
           <p>找實習、看公司評價、認識人脈</p>
         </div>
-        <div class="roleCard" data-role="professional">
-          <i class="ri-check-line check"></i>
-          <div class="ricon"><i class="ri-briefcase-line"></i></div>
-          <h4>專業人士</h4>
-          <p>分享經驗、幫助學生、建立人脈</p>
-        </div>
         <div class="roleCard" data-role="creator">
           <span class="recommend">需審核</span>
           <i class="ri-check-line check"></i>
           <div class="ricon"><i class="ri-quill-pen-line"></i></div>
           <h4>認證創作者</h4>
-          <p>發佈部落格、辦活動、建立個人品牌</p>
+          <p>發佈部落格、建立個人品牌</p>
+        </div>
+        <div class="roleCard" data-role="organizer">
+          <i class="ri-check-line check"></i>
+          <div class="ricon"><i class="ri-calendar-event-line"></i></div>
+          <h4>活動主辦單位</h4>
+          <p>辦活動、徵才、招生</p>
         </div>
       </div>
       <div class="infoBanner" style="margin-top:22px">
         <i class="ri-shield-check-line"></i>
-        <span>學生／專業人士身分透過平台既有的<strong>學生信箱／身分驗證</strong>即可完成；「認證創作者」需額外填寫資料送審。</span>
+        <span>學生用學校信箱驗證（選填）；認證創作者需填表送審；活動主辦單位輕量註冊、<strong>免公司驗證</strong>。三者共用同一個入口，只是欄位不同。</span>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:24px">
         <button class="btn" id="step1Next" disabled>下一步 <i class="ri-arrow-right-line"></i></button>
       </div>
     </section>
 
-    <!-- STEP 2：認證表單 -->
+    <!-- STEP 2：依身分分支的表單 -->
     <section id="step2" style="display:none">
       <div class="cz-section-head" style="margin-bottom:18px">
-        <h2 class="cz-section-title" style="font-size:24px">認證創作者資訊</h2>
-        <p class="cz-section-sub">填寫以下資訊以申請「認證創作者」標章，團隊將於 3–5 個工作天內審核。對應後端 <code>verifiedRoleApplications</code> 集合。</p>
+        <h2 class="cz-section-title" id="step2Title" style="font-size:24px">填寫資料</h2>
+        <p class="cz-section-sub" id="step2Sub"></p>
       </div>
-      <div class="formCard">
-        <label class="formLabel">所在產業或公司 *</label>
-        <input class="input" id="org" placeholder="例：Google Taiwan、前 McKinsey 商業分析師" maxlength="300" />
-        <div class="charCount" id="orgCount">0 / 300</div>
-
-        <label class="formLabel" style="margin-top:10px">相關經歷與說明 *</label>
-        <textarea class="textArea" id="exp" rows="5" placeholder="請簡述您的教學或內容創作經驗、專業背景（3–4 句即可）。" maxlength="4000"></textarea>
-        <div class="charCount" id="expCount">0 / 4000</div>
-
-        <label class="formLabel" style="margin-top:10px">專長領域（選填，可複選）</label>
-        <div id="domainChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-
-        <label class="formLabel" style="margin-top:16px">補充證明連結（選填）</label>
-        <input class="input" id="evidence" type="url" placeholder="作品集、課程、個人網站等連結" maxlength="1000" />
-        <div class="fieldHint">此欄位與上傳檔案僅供審核使用，不會公開（對應 verifiedRoleApplicationPrivate）。</div>
-
-        <label class="formLabel" style="margin-top:16px">或上傳證明檔案（選填，最多 5 個）</label>
-        <div class="fileDrop" onclick="CZ.toast('Demo 不含真實上傳')"><i class="ri-attachment-2"></i> 點擊上傳證明檔案</div>
-
-        <div class="infoBanner" style="margin-top:18px">
-          <i class="ri-information-line"></i>
-          <span>申請送出後您可繼續正常使用平台。審核通過將獲得「認證創作者」標章並解鎖創作者主頁。</span>
-        </div>
-      </div>
+      <div class="formCard" id="step2Body"></div>
       <div style="display:flex;justify-content:space-between;margin-top:24px">
         <button class="btn btn-white" id="step2Back"><i class="ri-arrow-left-line"></i> 上一步</button>
-        <button class="btn" id="step2Submit"><i class="ri-send-plane-line"></i> 送出申請</button>
+        <button class="btn" id="step2Submit"></button>
       </div>
     </section>
 
-    <!-- STEP 3：送審完成 -->
+    <!-- STEP 3：完成 / 送審狀態 -->
     <section id="step3" style="display:none">
       <div class="formCard statusCard" id="statusCard"></div>
     </section>
@@ -140,9 +112,64 @@
 <script src="/assets/app.js"></script>
 <script>
   const $ = s => document.querySelector(s);
+  const D_FEATURED = window.CZ_DATA.featured;
   let role = null;
-  const domains = ["求職輔導","顧問求職","技術面試","數位行銷","設計","創業","金融求職","個人品牌","研究所申請"];
   const picked = new Set();
+
+  // 各身分的「可選類型」chips（學生不需要）
+  const CHIPS = {
+    creator: ["求職輔導","顧問求職","技術面試","數位行銷","設計","創業","金融求職","個人品牌","研究所申請"],
+    organizer: ["講座","工作坊","競賽","實習媒合","公司參訪","社群聚會","徵才說明會"],
+  };
+
+  // 身分分支設定：title / sub / 表單 body / 送出鈕文字
+  const ROLE = {
+    student: {
+      submitLabel: "完成註冊", submitIcon: "check-line",
+      title: "學生資料",
+      sub: "只有學生會填這一段。用於媒合實習與驗證學生身分。",
+      body: () => `
+        <label class="formLabel">就讀學校 *</label>
+        <input class="input" id="f_school" placeholder="例：國立臺灣大學" maxlength="100" />
+        <label class="formLabel" style="margin-top:12px">學校信箱（選填，可日後在設定補驗證）</label>
+        <input class="input" id="f_schoolEmail" type="email" placeholder="example@ntu.edu.tw" />
+        <div class="fieldHint">對應 onboarding 既有「學生信箱驗證」步驟（本來就可跳過）。</div>
+        <div class="infoBanner" style="margin-top:18px"><i class="ri-shield-check-line"></i><span>送出即完成，可立即使用平台。學校信箱驗證為選填。</span></div>`,
+    },
+    creator: {
+      submitLabel: "送出申請", submitIcon: "send-plane-line",
+      title: "認證創作者資訊",
+      sub: "跳過學生欄位。填以下資訊申請「認證創作者」標章，團隊將於 3–5 個工作天內審核。對應後端 verifiedRoleApplications 集合。",
+      body: () => `
+        <label class="formLabel">所在產業或公司 *</label>
+        <input class="input" id="org" placeholder="例：Google Taiwan、前 McKinsey 商業分析師" maxlength="300" />
+        <div class="charCount" id="orgCount">0 / 300</div>
+        <label class="formLabel" style="margin-top:10px">相關經歷與說明 *</label>
+        <textarea class="textArea" id="exp" rows="5" placeholder="請簡述您的教學或內容創作經驗、專業背景（3–4 句即可）。" maxlength="4000"></textarea>
+        <div class="charCount" id="expCount">0 / 4000</div>
+        <label class="formLabel" style="margin-top:10px">專長領域（選填，可複選）</label>
+        <div id="chipBox" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <label class="formLabel" style="margin-top:16px">補充證明連結（選填）</label>
+        <input class="input" id="evidence" type="url" placeholder="作品集、課程、個人網站等連結" maxlength="1000" />
+        <div class="fieldHint">此欄位與上傳檔案僅供審核使用，不會公開（對應 verifiedRoleApplicationPrivate）。</div>
+        <label class="formLabel" style="margin-top:16px">或上傳證明檔案（選填，最多 5 個）</label>
+        <div class="fileDrop" onclick="CZ.toast('Demo 不含真實上傳')"><i class="ri-attachment-2"></i> 點擊上傳證明檔案</div>
+        <div class="infoBanner" style="margin-top:18px"><i class="ri-information-line"></i><span>送出後可繼續正常使用平台。審核通過將獲得「認證創作者」標章並解鎖創作者主頁。</span></div>`,
+    },
+    organizer: {
+      submitLabel: "完成註冊", submitIcon: "check-line",
+      title: "主辦單位資料",
+      sub: "跳過學生欄位。輕量註冊，免公司／統一編號驗證。",
+      body: () => `
+        <label class="formLabel">單位／組織名稱 *</label>
+        <input class="input" id="f_orgName" placeholder="例：臺大創新創業中心、XX 學生會" maxlength="100" />
+        <label class="formLabel" style="margin-top:12px">主辦聯絡方式 *（Email 或電話）</label>
+        <input class="input" id="f_orgContact" placeholder="活動聯絡 Email 或電話" maxlength="100" />
+        <label class="formLabel" style="margin-top:12px">常辦的活動類型（選填，可複選）</label>
+        <div id="chipBox" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div class="infoBanner" style="margin-top:18px"><i class="ri-flashlight-line"></i><span><strong>免公司／統一編號驗證。</strong>送出即可開始建立活動；首次刊登的活動仍會經平台<strong>內容審核</strong>（對應 Activity.approvalStatus）。</span></div>`,
+    },
+  };
 
   // 角色選擇
   document.querySelectorAll(".roleCard").forEach(card => card.addEventListener("click", () => {
@@ -160,39 +187,89 @@
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
-  // 領域 chips
-  $("#domainChips").innerHTML = domains.map(d=>`<button type="button" class="chip chip-ghost" data-d="${d}">${d}</button>`).join("");
-  document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => {
-    const d = b.dataset.d;
-    if (picked.has(d)) { picked.delete(d); b.className = "chip chip-ghost"; }
-    else { picked.add(d); b.className = "chip chip-confirm"; }
-  }));
+  function renderChips(kind) {
+    const box = $("#chipBox"); if (!box) return;
+    picked.clear();
+    box.innerHTML = (CHIPS[kind]||[]).map(d=>`<button type="button" class="chip chip-ghost" data-d="${d}">${d}</button>`).join("");
+    box.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => {
+      const d = b.dataset.d;
+      if (picked.has(d)) { picked.delete(d); b.className = "chip chip-ghost"; }
+      else { picked.add(d); b.className = "chip chip-confirm"; }
+    }));
+  }
+  function bindCount(id, cid, max) {
+    const e = $("#"+id), c = $("#"+cid); if (!e) return;
+    e.addEventListener("input", () => { c.textContent = e.value.length+" / "+max; c.classList.toggle("over", e.value.length>max); });
+  }
+  function tagsHtml() {
+    return [...picked].map(d=>`<span class="chip chip-ghost" style="font-size:12px;padding:4px 10px">${d}</span>`).join(" ") || '<span class="muted">未填</span>';
+  }
 
-  // 字數
-  function bind(id, cid, max){ const e=$("#"+id),c=$("#"+cid); e.addEventListener("input",()=>{c.textContent=e.value.length+" / "+max;c.classList.toggle("over",e.value.length>max);}); }
-  bind("org","orgCount",300); bind("exp","expCount",4000);
+  // STEP 2 依身分渲染對應欄位
+  function renderStep2() {
+    const cfg = ROLE[role];
+    $("#step2Title").textContent = cfg.title;
+    $("#step2Sub").textContent = cfg.sub;
+    $("#step2Body").innerHTML = cfg.body();
+    $("#step2Submit").innerHTML = `<i class="ri-${cfg.submitIcon}"></i> ${cfg.submitLabel}`;
+    if (role === "creator") { renderChips("creator"); bindCount("org","orgCount",300); bindCount("exp","expCount",4000); }
+    if (role === "organizer") { renderChips("organizer"); }
+  }
 
-  // 流程
-  $("#step1Next").addEventListener("click", () => {
-    if (role === "creator") setStep(2);
-    else { // 學生 / 專業人士：直接完成
-      $("#statusCard").innerHTML = `
-        <div class="statusIcon approved"><i class="ri-checkbox-circle-line"></i></div>
-        <h2>身分設定完成</h2>
-        <p>您已以「${role==='student'?'學生':'專業人士'}」身分加入。可隨時在設定中升級為「認證創作者」。</p>
-        <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-          <a class="btn" href="/index">前往創作者專區</a>
-          <a class="btn btn-white" href="/directory">探索創作者</a>
-        </div>`;
-      setStep(3);
-    }
-  });
+  $("#step1Next").addEventListener("click", () => { if (!role) return; renderStep2(); setStep(2); });
   $("#step2Back").addEventListener("click", () => setStep(1));
-
   $("#step2Submit").addEventListener("click", () => {
+    if (role === "student") return submitStudent();
+    if (role === "organizer") return submitOrganizer();
+    return submitCreator();
+  });
+
+  // 學生：輕量完成
+  function submitStudent() {
+    const school = $("#f_school").value.trim();
+    if (!school) { CZ.toast("請填寫就讀學校"); $("#f_school").focus(); return; }
+    const email = $("#f_schoolEmail").value.trim();
+    $("#statusCard").innerHTML = `
+      <div class="statusIcon approved"><i class="ri-checkbox-circle-line"></i></div>
+      <h2>學生身分設定完成</h2>
+      <p>歡迎加入實習通！你已以「學生」身分完成註冊${email ? '，學校信箱稍後可在設定驗證' : ''}。</p>
+      <div class="reviewSummary">
+        <div class="r"><b>就讀學校</b><span>${school}</span></div>
+        <div class="r"><b>學校信箱</b><span>${email || '<span class="muted">未填（選填）</span>'}</span></div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="btn" href="/index">前往創作者專區</a>
+        <a class="btn btn-white" href="/directory">探索創作者</a>
+      </div>
+      <p class="muted" style="font-size:12.5px;margin-top:14px">想分享內容？可隨時在設定升級為「認證創作者」。</p>`;
+    setStep(3);
+  }
+
+  // 主辦單位：輕量完成（免公司驗證）
+  function submitOrganizer() {
+    const name = $("#f_orgName").value.trim();
+    const contact = $("#f_orgContact").value.trim();
+    if (!name || !contact) { CZ.toast("請填寫單位名稱與聯絡方式"); return; }
+    $("#statusCard").innerHTML = `
+      <div class="statusIcon approved"><i class="ri-checkbox-circle-line"></i></div>
+      <h2>主辦單位註冊完成</h2>
+      <p>「${name}」已完成註冊，免公司／統編驗證。你現在就可以建立活動；首次刊登的活動會經平台內容審核。</p>
+      <div class="reviewSummary">
+        <div class="r"><b>單位名稱</b><span>${name}</span></div>
+        <div class="r"><b>聯絡方式</b><span>${contact}</span></div>
+        <div class="r"><b>活動類型</b><span>${tagsHtml()}</span></div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="btn" href="/creator?id=${D_FEATURED}#events"><i class="ri-calendar-event-line"></i> 建立第一個活動</a>
+        <a class="btn btn-white" href="/index">先去逛逛</a>
+      </div>`;
+    setStep(3);
+  }
+
+  // 認證創作者：送審 + 模擬通過
+  function submitCreator() {
     if (!$("#org").value.trim() || !$("#exp").value.trim()) { CZ.toast("請填寫必填欄位"); return; }
     const org = $("#org").value, exp = $("#exp").value;
-    const tags = [...picked].map(d=>`<span class="chip chip-ghost" style="font-size:12px;padding:4px 10px">${d}</span>`).join(" ") || '<span class="muted">未填</span>';
     $("#statusCard").innerHTML = `
       <div class="statusIcon pending"><i class="ri-time-line"></i></div>
       <h2>申請已送出，等待審核</h2>
@@ -201,7 +278,7 @@
       <div class="reviewSummary">
         <div class="r"><b>所在產業或公司</b><span>${org}</span></div>
         <div class="r"><b>相關經歷與說明</b><span>${exp}</span></div>
-        <div class="r"><b>專長領域</b><span>${tags}</span></div>
+        <div class="r"><b>專長領域</b><span>${tagsHtml()}</span></div>
       </div>
       <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <a class="btn btn-white" href="/index">先去逛逛專區</a>
@@ -222,9 +299,7 @@
           </div>`;
       });
     }, 0);
-  });
-
-  const D_FEATURED = window.CZ_DATA.featured;
+  }
 </script>
 </body>
 </html>

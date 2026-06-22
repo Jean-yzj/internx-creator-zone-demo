@@ -26,7 +26,7 @@
 | 追蹤 / 通知（§12）| `Connection`（雙向）+ `addSideNotification`；單向 follow 與發文扇出 **待補** | `data/connection.ts` |
 
 **三件主要工作：**
-1. **註冊**：創作者**不是獨立註冊線**。建議「一般註冊 → 事後於 `/dashboard/verified-role-apply` 申請」（方案 A，現況）；或在 `onboarding.jsx` 的 `steps` 插入「身分選擇」步驟（方案 B，Demo 示範）。兩者都接到既有 `submitVerifiedRoleApplication()`（§3）。
+1. **註冊**：創作者／主辦單位**不是獨立註冊系統**，而是 onboarding 的**身分優先分支** — 第一步就選身分（放在「基本資料」之前），非學生跳過學校／學校信箱。學生填學校；創作者填認證表單 → `submitVerifiedRoleApplication()` 送審；主辦單位輕量建檔（免公司／統編）。`/dashboard/verified-role-apply` 仍可保留為事後申請備援。詳見 §3。
 2. **創作者主頁**：在 `Profile.tsx` 用既有的 `activeSectionTab` 機制新增 3 個分頁（部落格 / 主辦活動 / 活動紀錄），資料分別以 `userId` / `createdBy` / `userUid` 撈取。
 3. **發佈權**：把目前 admin-only 的部落格發佈權，放寬給帶有 `verified-creator` 標章的使用者（一行條件即可）。
 
@@ -181,17 +181,20 @@ export interface RegistrationData {
 
 ## 3. 功能一：註冊與身份識別
 
-### 3.0 先回答：「創作者是走另一條註冊流程嗎？」
-**不是。** 創作者沒有獨立的註冊入口——所有人都用同一個註冊／onboarding，差別只在「**何時**」取得 `verified-creator` 標章。有兩種接法，兩者**共用同一張認證表單與審核機制**（§3.4／§3.5）：
+### 3.0 先回答：「創作者／主辦單位要走另一條註冊流程嗎？」
+**不必做兩套（或三套）註冊系統，但也別讓非學生走完學生 onboarding。** 實習通的 onboarding 是為學生設計的（含學校、學校信箱），創作者與主辦單位填這些是多餘摩擦。建議用**身分優先分支**：一個入口、一套帳號，**第一步就選身分（放在「基本資料」之前）**，之後欄位依身分顯示。
 
-| | 方案 A — 事後申請（**平台現況・建議**）| 方案 B — 註冊時選身分（**Demo 示範**）|
+| 身分 | 註冊時填什麼 | 後端 |
 |---|---|---|
-| 流程 | 一般註冊 → 完成 onboarding → 正常使用 → 想當創作者時再申請 | onboarding 中插入「選擇身分」一步，選創作者即送審 |
-| 申請入口 | 既有路由 `/[lang]/dashboard/verified-role-apply` | onboarding step 內嵌認證表單 |
-| 優點 | 註冊零阻力、不擋一般使用者；改動最小 | 創作者意圖明確、引導完整 |
-| 代價 | 創作者需多一次主動申請 | 拉長註冊漏斗；需改 onboarding step 索引（§3.2）|
+| 學生 | 學校 + 學校信箱（選填，可跳過）| 既有 onboarding 學生信箱驗證（§3.3）|
+| 認證創作者 | 認證表單（org／exp／專長／證明）→ 送審 | `submitVerifiedRoleApplication`（§3.4）→ 審核發金標（§3.5）|
+| 活動主辦單位 | 單位名稱 + 聯絡方式（**免公司／統編驗證**）| 輕量建檔；首次刊登活動仍走 `Activity.approvalStatus` 內容審核 |
 
-> **建議採方案 A**（現況已支援，幾乎免改 onboarding）。下面 §3.2 仍提供方案 B 的精確插入做法，因為 Demo `register.html` 示範的是方案 B 的選擇介面；兩案後端完全相同。
+> 主辦單位 ≈ 既有「professional／主辦者」角色（後台 `/[lang]/professional/home`、活動 `Activity.createdBy`）。三者**共用同一個註冊入口與帳號層**，只是欄位依身分顯示——不是各做一套註冊。
+
+**為什麼不只用「事後申請」？** 平台現況是創作者走完一般 onboarding 後，再到 `/[lang]/dashboard/verified-role-apply` 申請（§3.4 仍可用、可保留為備援入口）。但那條路會讓創作者／主辦單位先被學生欄位卡一次。把身分選擇提到 onboarding **最前面**就能避免——這也修正了本文早期「在基本資料之後插一步」的順序，**必須在它之前**。
+
+> Demo 對應：`register.html` 示範身分優先分支（學生／創作者／主辦單位三選一 → 下一步只出現該身分的欄位）。
 
 ### 3.1 現有 onboarding 結構（`pages/[lang]/account/onboarding.jsx`）
 ```javascript
@@ -204,22 +207,23 @@ const [currentStep, setCurrentTab] = useState(0);
 // 跳過 email 驗證（125）：setCurrentTab(5)
 ```
 
-### 3.2 插入「身分選擇」步驟（精確做法）
-在 `steps` 陣列的 **Step 2（基本資料，~808 行）之後、Step 3 之前**插入一個新 step 物件：
+### 3.2 插入「身分選擇」並讓後續欄位分支（精確做法）
+把身分選擇插在 **Step 1 社群守則之後、Step 2 基本資料之前**（成為新的 Step 2），讓後面的欄位依身分顯示：
 ```jsx
+// 新 Step 2：選擇身分（對應 Demo register.html 的 roleCard）
 {
   name: "選擇您的身分",
-  content: (
-    <div>
-      {/* 三選一：學生 / 專業人士 / 認證創作者（對應 Demo register.html 的 roleCard）*/}
-      {/* 選「認證創作者」→ 展開認證表單 → submitVerifiedRoleApplication() → 設 users.userRole */}
-    </div>
-  ),
+  content: <RoleSelect onPick={r => setRole(r)} />,   // 'student' | 'creator' | 'organizer'
 },
 ```
-- 因為前進都用相對的 `setCurrentTab(currentStep + 1)`，**插入後所有現有步驟索引自動後移**，不需改其他前進邏輯。
-- **唯一要改**：跳過按鈕（125 行）原本 `setCurrentTab(5)`（直接到完成），新增一步後完成頁變 index 6，請改成 `setCurrentTab(6)`。
-- 新增 `users.userRole` 欄位（**待補**，§19）。
+接著讓既有步驟**依 `role` 條件顯示**（關鍵：非學生不該看到學生欄位）：
+- **基本資料**：共用欄位（暱稱、頭像等）保留給所有人；**學校欄位只在 `role === 'student'` 顯示**。
+- **學生信箱（原 Step 3）／驗證碼（原 Step 4）**：只對 `role === 'student'` 顯示，其餘身分整段跳過。
+- `role === 'creator'`：基本資料後插入認證表單 → `submitVerifiedRoleApplication()`（§3.4），送審。
+- `role === 'organizer'`：輕量單位資料（單位名稱／聯絡方式，**免公司／統編**）；不需送認證審核。
+- 各身分都寫 `users.userRole`（**待補**，§19）。
+
+**步驟索引提醒**：前進用相對的 `setCurrentTab(currentStep + 1)`，插入後索引自動後移；但**跳過 email 驗證的硬編碼 `setCurrentTab(5)`（125 行）必須改成依 `role` 計算下一步**——否則非學生會被導到錯誤步驟。建議把「下一步是哪一步」改為依 role 動態決定，不要寫死數字。
 
 ### 3.3 既有身分驗證可直接沿用（「填寫讓我們可以驗證的東西」）
 學生信箱驗證流程已存在：
@@ -273,9 +277,10 @@ rejectVerifiedRoleApplication(db, adminUid, applicationId, note)  // status="rej
 > 管理頁 `/[lang]/admin/verified-role-applications` 已存在，**不需改動**，連上即可。
 
 ### 3.6 前端待辦清單
-- [ ] onboarding 新增身分選擇 step（重用 `Card`、`Input`、`TextArea`、`FileUpload`、`Chip`）。
-- [ ] 選「創作者」時呼叫 `submitVerifiedRoleApplication()`，並寫 `users.userRole = "creator"`。
-- [ ] 顯示「待審核中」：`<Chip type="pending">待審核中</Chip>`（Demo `register.html` Step 3）。
+- [ ] onboarding **基本資料之前**插入身分選擇 step（學生／創作者／主辦單位，重用 `Card`、`Input`、`TextArea`、`FileUpload`、`Chip`）。
+- [ ] 後續欄位依 `role` 分支：學校／學校信箱只對 `student` 顯示；`creator` 接認證表單；`organizer` 接輕量單位資料。
+- [ ] 選「創作者」時呼叫 `submitVerifiedRoleApplication()`；各身分都寫 `users.userRole`（`student｜creator｜organizer`）。
+- [ ] 顯示「待審核中」：`<Chip type="pending">待審核中</Chip>`（Demo `register.html` 創作者分支）。
 - [ ] （建議）通過/駁回各發一封 Email + 站內通知（`appStates.addSideNotification()`）。
 
 > Demo 對應：`register.html`（3 步驟 stepper + 角色卡 + 認證表單 + 待審/通過狀態）。
@@ -591,7 +596,7 @@ export interface ReportData {
 | `index.html` / `directory.html` | 新增 `/[lang]/creators` |
 | `creator.html` | `/[lang]/user/[id]` + `Profile.tsx`（新增分頁） |
 | `blog.html` / `blog-article.html` / `blog-editor.html` | `/[lang]/blog`、`/blog/[slug]`、`/blog/create` + `BlogPostsGrid` / `BlogView` / `BlockEditor` |
-| `register.html`（方案 A/B 流程說明 + stepper）| `/[lang]/account/onboarding`（方案 B）或 `/dashboard/verified-role-apply`（方案 A）+ `submitVerifiedRoleApplication` |
+| `register.html`（身分優先分支 + stepper）| `/[lang]/account/onboarding`（身分選擇置前、欄位依 role 分支）+ `submitVerifiedRoleApplication`；`/dashboard/verified-role-apply` 為事後申請備援 |
 | creator.html「編輯我的頁面」彈窗 | `ProfileEditPopup` / `SkillsEditPopup` / `LinksEditPopup` + `RealProfile.save()` |
 | creator.html「檢舉創作者」、blog-article.html「檢舉文章」 | `createReport()` + `reports` 集合（待補，§11）|
 | creator.html「追蹤」按鈕、blog-editor 發佈成功彈窗 | 單向 follow + 發文通知扇出（待補，§12）|
@@ -644,7 +649,7 @@ match /blogPosts/{id} {
 
 **Phase 1 — 身分與標章（後端大多已就緒）**
 - [ ] `users` 加 `userRole` 欄位（§19）
-- [ ] onboarding 插入身分選擇 step；跳過按鈕 `setCurrentTab(5)` → `setCurrentTab(6)`
+- [ ] onboarding 第一步插入身分選擇（基本資料之前）；後續欄位依 `role` 分支，學生欄位只對學生顯示；硬編碼 `setCurrentTab(5)` 改為依 role 計算下一步
 - [ ] 串 `submitVerifiedRoleApplication()`；顯示「待審核中」
 - [ ] 驗證審核 → `approveVerifiedRoleApplication` → 個人頁金標顯示
 
