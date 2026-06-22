@@ -39,12 +39,13 @@
 ## 1. 名詞與架構總覽
 
 ### 1.1 角色與身分
-- **使用者身分（`users.userRole`，待補欄位）**：`student | professional | creator`，在 onboarding 選擇。僅用於分析與功能 gating。
+- **使用者身分（`users.userRole`，待補欄位）**：`student | creator | organizer`，在 onboarding 第一步選擇（§3）。僅用於分析與功能 gating。（`organizer` ≈ 既有 professional／主辦者角色。）
 - **標章（`profiles.badges`）**：真正決定「是否為認證創作者」的，是 `badges` 陣列是否含 `verified-creator`。由後端在審核通過時寫入。
 
 ### 1.2 資料流（申請 → 審核 → 標章 → 呈現）
 
 > **整體架構圖**：見 [`site/img/architecture.svg`](img/architecture.svg)（線上 handoff 頁頂部亦內嵌）。圖中以**金色虛線框**標示「待補」節點，實線為既有系統。
+> **端到端逐步流程圖**：線上 [`/flow`](flow.html) 以視覺化方式逐條拆解 6 大流程（註冊分支／認證審核／主頁編輯／部落格連動／檢舉處理／追蹤通知），每步標明對應的後端函式與集合。本文是文字規格，`/flow` 是視覺索引，兩者互補。
 
 ```
 使用者填認證表單
@@ -683,6 +684,76 @@ match /blogPosts/{id} {
 - [ ] `firebase-contents` 補/確認安全規則（§15）
 - [ ] 埋分析事件（§20）
 
+### 17.8 完整工程拆解（Ticket 級）
+> 估時：S ≤ 0.5 天、M 1–2 天、L 3–5 天（單一工程師、不含 QA）。「對應流程」指線上 `/flow` 的第幾條圖。多數是「接既有系統」，少數標 🆕 為需新建。
+
+**T1 · onboarding 身分選擇分支**　`M`　依賴：T2
+- 做什麼：onboarding 第一步（社群守則後、基本資料前）插入身分選擇；後續欄位依 `role` 分支（學生看到學校／信箱，創作者→認證表單，主辦單位→輕量單位資料）。
+- 驗收：非學生整段不出現學校／學校信箱欄位；硬編碼 `setCurrentTab(5)` 改為依 role 計算下一步；三種身分都能走完並寫入 `users.userRole`。
+- 檔案：`pages/[lang]/account/onboarding.jsx`　｜對應流程 #1
+
+**T2 · `users.userRole` 欄位**　`S`　依賴：無　🆕
+- 做什麼：`data/user.ts` 加 `userRole: 'student'｜'creator'｜'organizer'`。
+- 驗收：寫入/讀取正常；不影響既有 `users` 文件；標章判定仍以 `profiles.badges` 為準。
+- 檔案：`data/user.ts`
+
+**T3 · 認證申請 → 審核 → 金標**　`S`（多為既有，主要是接線）　依賴：T1
+- 做什麼：創作者分支接 `submitVerifiedRoleApplication()`；確認 `/admin/verified-role-applications` 審核後 `grantVerifiedBadgeToUser` 正常。
+- 驗收：送出後 `verifiedRoleApplications` 出現 pending、重送被擋（一人一筆）；核准後 `profiles.badges` 含 `verified-creator`、`verifiedRolePitch` 寫入、金標顯示且可點開 pitch。
+- 檔案：`data/verified-role-application.ts`（皆既有）｜對應流程 #1 #2
+
+**T4 · 創作者主頁三分頁**　`M`　依賴：T5（活動紀錄查詢）
+- 做什麼：`Profile.tsx` 用既有 `activeSectionTab` 機制加「部落格／主辦活動／活動紀錄」；資料分別 `fetchUserPosts(authorId)`、`Activity.fetchUserActivities(createdBy)`、報名查詢。
+- 驗收：三分頁皆有資料、數字與卡片一致；RWD（手機分頁列可水平捲動）。
+- 檔案：`components/Profile/Profile.tsx`｜對應流程 #3
+
+**T5 · 活動紀錄查詢方法**　`S`　依賴：無　🆕
+- 做什麼：新增 `Registration.getRegistrationsByUserUid(db, userUid)`（where `userUid ==`）。
+- 驗收：回傳某人所有報名；T4 活動紀錄分頁可串。
+- 檔案：`data/registration.ts`
+
+**T6 · 個人頁編輯接既有彈窗**　`S`　依賴：T3
+- 做什麼：本人主頁接 `ProfileEditPopup／SkillsEditPopup／LinksEditPopup`；認證資訊區唯讀。
+- 驗收：改基本資料／專長／社群後 `realProfile` 同步；`verifiedRolePitch` 無法前端寫。
+- 檔案：`components/Profile/*`｜對應流程 #3
+
+**T7 · 部落格發佈權放寬**　`S`　依賴：無
+- 做什麼：`blog/create.tsx` 三處 `admin` 檢查改 `admin || badges.includes('verified-creator')`；同步 Firestore 規則（§15）。
+- 驗收：verified-creator（非 admin）可進 `/blog/create` 發文；非創作者被導回。
+- 檔案：`pages/[lang]/blog/create.tsx`｜對應流程 #4
+
+**T8 · 部落格 byline 補金標**　`S`　依賴：無
+- 做什麼：`BlogView.tsx` 作者署名補 `MergedSenderBadges`；確認 `authorAvatar` 有帶入。
+- 驗收：文章頁作者名旁顯示金標，點作者導向 `/[lang]/user/[uid]`。
+- 檔案：`components/Blog/BlogView.tsx`｜對應流程 #4
+
+**T9 · 檢舉系統**　`L`　依賴：無　🆕
+- 做什麼：新增 `reports` 集合、`createReport()`、`/admin/reports` 處理頁；前端 profile/blog 檢舉彈窗（原因依對象切換）。
+- 驗收：送出寫 `reports{processed:false}`；管理員可處理 → `processed:true + action`；下架走既有 `BlogPost.updateStatus('archived')`。
+- 檔案：`data/report.ts`🆕、`pages/[lang]/admin/reports.tsx`🆕、檢舉彈窗元件｜對應流程 #5
+
+**T10 · 撤銷標章**　`S`　依賴：T9
+- 做什麼：新增 `revokeVerifiedBadgeFromUser()`（移除 `badges` 的 `verified-creator` + 清 `verifiedRolePitch`），與 `grantVerifiedBadgeToUser` 對稱。
+- 驗收：撤銷後金標全站消失；可由檢舉處置或 admin 觸發。
+- 檔案：`data/verified-role-application.ts` / `data/profile.ts`｜對應流程 #5
+
+**T11 · 單向追蹤**　`M`　依賴：無　🆕
+- 做什麼：新增單向 follow 邊（`followerUids[]`／`followingUids[]` 或 `follows/{a}_{b}`）與 `followerCount`；訪客主頁「追蹤」按鈕接上。
+- 驗收：追蹤 +1、取消 -1、出現在追蹤清單；與雙向 `Connection` 不衝突。
+- 檔案：`data/connection.ts` / `data/profile.ts`｜對應流程 #6
+
+**T12 · 發文通知扇出**　`M`　依賴：T11　🆕
+- 做什麼：Cloud Function `onBlogPublished`，文章發佈時對所有追蹤者批次寫 `Notification`；確認 `Notification` 持久化模型。
+- 驗收：創作者發文後追蹤者收到站內（+可選 Email）通知；不在前端逐筆寫。
+- 檔案：Cloud Functions（`firebase-contents`）+ `data/notification.ts`｜對應流程 #6
+
+**T13 · 創作者專區入口**　`M`　依賴：無
+- 做什麼：新增 `/[lang]/creators` 首頁 + 探索頁；`TOP_BAR_TABS` 加入創作者入口（icon `quill-pen-line`）。
+- 驗收：可從導覽列進入專區、瀏覽/篩選創作者。
+- 檔案：`pages/[lang]/creators/*`🆕、`lib/config.js`｜對應流程 #7
+
+**關鍵路徑（建議排程）**：T2 → T1 → T3 →（並行 T6 / T7+T8 / T5→T4）→ T9→T10 →（T11→T12）→ T13。其中 **T9 檢舉**與 **T11/T12 追蹤通知**是工程量最大的新建項，可獨立排期；其餘多為「接既有系統」的小改動。
+
 ---
 
 ## 18. 元件 / 函式速查
@@ -717,7 +788,7 @@ match /blogPosts/{id} {
 
 ## 19. 已知缺口 / 待補（重要）
 
-1. **`users.userRole` 欄位**：目前 `users`（`data/user.ts`）沒有此欄位，需新增（`student | professional | creator`）。標章判定仍以 `profiles.badges` 為準，`userRole` 僅供分析/gating。
+1. **`users.userRole` 欄位**：目前 `users`（`data/user.ts`）沒有此欄位，需新增（`student | creator | organizer`；`organizer` ≈ 既有 professional／主辦者）。標章判定仍以 `profiles.badges` 為準，`userRole` 僅供分析/gating。
 2. **`getRegistrationsByUserUid`**：`Registration` 目前只有 `loadByUserAndActivity` 與 `getRegistrationsByActivityId`，缺「以 userUid 撈某人所有報名」的方法，需新增才能做「活動紀錄」分頁。
 3. **部落格 byline 標章**：`BlogView.tsx` 目前不顯示標章，需依 §5.3 補 `MergedSenderBadges`。
 4. **`authorAvatar` 未自動帶入**：`BlogPost.create` 不會自動塞作者頭像，需在 `blogData` 顯式帶入，否則文章卡/署名無頭像。

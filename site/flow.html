@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>完整流程圖｜InternX 創作者專區</title>
+<link rel="icon" href="/favicon.png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" />
+<link rel="stylesheet" href="/assets/app.css" />
+<style>
+  .flowWrap { width: min(1040px, 94vw); margin: 0 auto; padding: 30px 0 80px; }
+  /* 區段跳轉列 */
+  .flowNav { position: sticky; top: calc(var(--top-bar-height) + 6px); z-index: 6; display: flex; gap: 8px;
+    flex-wrap: wrap; padding: 10px 12px; background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+    border: 1px solid #e3ecf7; border-radius: 12px; margin-bottom: 26px; }
+  .flowNav a { font-size: 13px; color: #41506a; text-decoration: none; padding: 6px 11px; border-radius: 999px; white-space: nowrap; }
+  .flowNav a:hover { background: var(--theme-white); color: var(--theme-color); }
+  /* 每個流程區段 */
+  .flowSection { margin: 0 0 46px; scroll-margin-top: calc(var(--top-bar-height) + 64px); }
+  .flowSecHead { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+  .flowSecHead .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 9px; background: var(--theme-color); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+  .flowSecHead h2 { font-size: 21px; color: #11243f; margin: 3px 0 0; }
+  .flowIntro { font-size: 14px; color: #51607a; line-height: 1.7; margin: 6px 0 18px; padding-left: 46px; }
+  /* 流程鏈 */
+  .flowChain { display: flex; flex-direction: column; align-items: center; }
+  .flowNode { display: flex; gap: 13px; align-items: flex-start; width: 100%; max-width: 560px;
+    background: #fff; border: 1px solid #e1e8f1; border-radius: 13px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(17,36,63,.05); }
+  .flowNode.rec { border-color: var(--theme-color); box-shadow: 0 4px 14px rgba(1,130,253,.12); }
+  .flowNode.decision { border-color: #ecc14d; background: #fffdf4; max-width: 600px; }
+  .flowNode.done { border-color: var(--confirm-color); background: #f4fbf6; }
+  .flowNode.dim { border-style: dashed; border-color: #e0b94e; background: #fffdf4; }
+  .fnIcon { flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px; background: var(--theme-white); color: var(--theme-color);
+    display: flex; align-items: center; justify-content: center; font-size: 19px; }
+  .flowNode.decision .fnIcon { background: #fdf2cf; color: #a9851b; }
+  .flowNode.done .fnIcon { background: #d8f3e0; color: var(--confirm-color); }
+  .flowNode.dim .fnIcon { background: #fdf2cf; color: #a9851b; }
+  .fnBody { flex: 1; min-width: 0; }
+  .fnTitle { font-size: 15px; font-weight: 600; color: #11243f; }
+  .fnTitle .pillTag { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+  .pillTag.todo { background: #fdf2cf; color: #8a6d12; }
+  .pillTag.exist { background: var(--theme-white); color: var(--theme-color); }
+  .fnDesc { font-size: 13px; color: #5a6b80; line-height: 1.55; margin-top: 3px; }
+  .fnBE { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .beChip { font-family: ui-monospace, "SF Mono", monospace; font-size: 11.5px; background: #eef2f9; color: #1f3550;
+    padding: 2px 8px; border-radius: 6px; border: 1px solid #e0e7f1; }
+  .beChip.dim { background: #fdf6e3; color: #8a6d12; border-color: #ecdcae; }
+  /* 連接線 */
+  .flowConn { display: flex; flex-direction: column; align-items: center; color: #b6c2d4; height: 30px; justify-content: center; position: relative; }
+  .flowConn i { font-size: 20px; line-height: 1; }
+  .flowConn .connLabel { position: absolute; left: calc(50% + 14px); top: 50%; transform: translateY(-50%);
+    font-size: 12px; color: #7a8699; white-space: nowrap; background: #f3f6fa; padding: 1px 8px; border-radius: 6px; }
+  /* 分支 */
+  .flowSplit { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; align-items: start; }
+  .flowCol { display: flex; flex-direction: column; align-items: stretch; border: 1px dashed #d4deec; border-radius: 14px; padding: 12px 11px; background: #fbfdff; }
+  .colHead { text-align: center; font-size: 14px; font-weight: 700; color: #11243f; padding: 7px 6px; border-radius: 9px; background: var(--theme-white); margin-bottom: 10px; }
+  .colHead.rec { background: var(--theme-color); color: #fff; }
+  .colHead i { margin-right: 5px; }
+  .flowCol .flowNode { max-width: 100%; padding: 11px 12px; box-shadow: none; }
+  .flowCol .fnIcon { width: 32px; height: 32px; font-size: 16px; }
+  .flowCol .flowConn { height: 22px; }
+  .flowCol .flowConn i { font-size: 17px; }
+  /* 對應後端說明 */
+  .flowKey { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #51607a; line-height: 1.65;
+    background: #f4f8fd; border: 1px solid #e3ecf7; border-radius: 11px; padding: 12px 14px; margin-top: 16px; }
+  .flowKey i { color: var(--theme-color); margin-top: 2px; flex-shrink: 0; }
+  .flowKey code { font-family: ui-monospace, monospace; font-size: 12px; background: #e7eefb; padding: 1px 6px; border-radius: 5px; color: #11243f; }
+  /* 圖例 */
+  .flowLegend { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; font-size: 12.5px; color: #5a6b80; margin: 4px 0 30px; }
+  .flowLegend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lgDot { width: 13px; height: 13px; border-radius: 4px; border: 1px solid; }
+  .lgDot.exist { background: #fff; border-color: var(--theme-color); }
+  .lgDot.todo { background: #fffdf4; border: 1px dashed #e0b94e; }
+  .lgDot.done { background: #f4fbf6; border-color: var(--confirm-color); }
+  @media (max-width: 760px) {
+    .flowSplit { grid-template-columns: 1fr; }
+    .flowIntro { padding-left: 0; }
+  }
+</style>
+</head>
+<body data-page="flow">
+
+<main>
+  <section class="cz-hero" style="padding:34px 0 22px">
+    <div class="cz-container">
+      <span class="cz-eyebrow"><i class="ri-flow-chart"></i> 工程交接・完整流程</span>
+      <h1 style="font-size:calc(var(--font-size)/3.4);margin:10px 0 8px">創作者專區・端到端流程圖</h1>
+      <p style="margin:0">從註冊到內容、檢舉、追蹤的每一條流程，標明對應的後端函式與集合。藍色＝既有可重用，金色虛線＝待補。</p>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn btn-small" href="/handoff"><i class="ri-file-list-3-line"></i> 完整交接文件</a>
+        <a class="btn btn-white btn-small" href="/creator"><i class="ri-user-star-line"></i> 看 Demo 主頁</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="flowWrap">
+    <div class="flowLegend">
+      <span><span class="lgDot exist"></span> 既有系統，直接重用</span>
+      <span><span class="lgDot todo"></span> 待補（需新增）</span>
+      <span><span class="lgDot done"></span> 完成 / 成功狀態</span>
+    </div>
+    <nav class="flowNav" id="flowNav"></nav>
+    <div id="flows"></div>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/render.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+/* ---------- 流程資料（皆對應 HANDOFF.md 的函式/集合）---------- */
+const FLOWS = [
+  {
+    id: "signup", icon: "user-add-line", title: "註冊與身分分支",
+    intro: "創作者／主辦單位不是獨立註冊系統。一個入口、一套帳號，第一步就選身分（放在「基本資料」之前），之後欄位依身分顯示 — 只有學生會看到學校／學校信箱。",
+    chain: [
+      { icon: "login-box-line", title: "進入 onboarding", desc: "Email／Google 登入後啟動引導" },
+      { icon: "shield-check-line", title: "同意社群守則", desc: "既有 Step 1" },
+      { kind: "decision", icon: "git-branch-line", title: "選擇身分", tag: ["todo","新步驟"],
+        desc: "插在「基本資料」之前。學生／認證創作者／活動主辦單位三選一，決定後續欄位。" },
+      { kind: "split", branches: [
+        { label: "學生", icon: "graduation-cap-line", steps: [
+          { icon: "profile-line", title: "基本資料 + 學校", desc: "含學校欄位" },
+          { icon: "mail-line", title: "學校信箱驗證", desc: "選填，可跳過", be: ["studentEmail"] },
+          { kind: "done", icon: "checkbox-circle-line", title: "完成", be: ["userRole=student"] },
+        ]},
+        { label: "認證創作者", icon: "quill-pen-line", tone: "rec", steps: [
+          { icon: "profile-line", title: "基本資料", desc: "跳過學校欄位" },
+          { icon: "file-edit-line", title: "認證表單", desc: "產業／經歷／專長／證明" },
+          { icon: "send-plane-line", title: "送出申請", be: ["submitVerifiedRoleApplication()"] },
+          { icon: "time-line", title: "待審核 → 流程 2", be: ["verifiedRoleApplications:pending"] },
+        ]},
+        { label: "活動主辦單位", icon: "calendar-event-line", steps: [
+          { icon: "profile-line", title: "基本資料", desc: "跳過學校欄位" },
+          { icon: "building-line", title: "單位資料", desc: "名稱 + 聯絡，免公司／統編", tag: ["exist","輕量"] },
+          { kind: "done", icon: "checkbox-circle-line", title: "完成，可建活動", be: ["userRole=organizer"] },
+        ]},
+      ]},
+    ],
+    key: "三條分支共用同一註冊入口與帳號層。<code>users.userRole</code> 為待補欄位，僅供分析／gating；真正決定「是否創作者」的是 <code>profiles.badges</code> 是否含 <code>verified-creator</code>。",
+  },
+
+  {
+    id: "verify", icon: "verified-badge-line", title: "認證審核 → 發標章",
+    intro: "創作者送出申請後，管理員在既有後台審核；通過即寫入金色標章與認證說明，全站同步顯示。整段後端幾乎都已存在。",
+    chain: [
+      { icon: "inbox-archive-line", title: "申請進入佇列", be: ["verifiedRoleApplications:pending", "verifiedRoleApplicationPrivate"], desc: "公開文件不含證明；證明另存私有集合，僅管理員可讀" },
+      { icon: "shield-user-line", title: "管理員審核", be: ["/admin/verified-role-applications"], tag: ["exist","已存在"], desc: "後台已存在，連上即可" },
+      { kind: "decision", icon: "scales-3-line", title: "通過 or 駁回？" },
+      { kind: "split", branches: [
+        { label: "通過", icon: "check-line", tone: "rec", steps: [
+          { icon: "shield-star-line", title: "授予標章", be: ["approveVerifiedRoleApplication()", "grantVerifiedBadgeToUser()"] },
+          { icon: "award-line", title: "寫入三處", desc: "profiles.badges、profiles.verifiedRolePitch、subprofiles/realProfile.badges" },
+          { kind: "done", icon: "vip-crown-line", title: "金標全站顯示", desc: "個人頁側欄、論壇/心得作者列、部落格 byline" },
+        ]},
+        { label: "駁回", icon: "close-line", steps: [
+          { icon: "feedback-line", title: "寫入駁回理由", be: ["rejectVerifiedRoleApplication(note)"] },
+          { kind: "done", icon: "refresh-line", title: "顯示理由，可重申請", desc: "reviewNote 顯示給使用者" },
+        ]},
+      ]},
+    ],
+    key: "點金標會開 <code>VerifiedRolePitchModal</code>，顯示 <code>verifiedRolePitch</code> 的產業與經歷。建議通過／駁回各發 Email + 站內通知（<code>addSideNotification()</code>）。",
+  },
+
+  {
+    id: "profile", icon: "user-star-line", title: "創作者主頁與編輯",
+    intro: "主頁 = 既有兩欄式版面 + 新增分頁。本人看到「編輯主頁」，訪客看到追蹤／私訊／檢舉。編輯沿用既有彈窗，認證資訊唯讀。",
+    chain: [
+      { icon: "user-line", title: "進入創作者主頁", be: ["/[lang]/user/[id]", "Profile.tsx"] },
+      { kind: "decision", icon: "user-search-line", title: "是本人嗎？", desc: "isOwnProfile = user.uid === profileId" },
+      { kind: "split", branches: [
+        { label: "本人（編輯）", icon: "edit-line", tone: "rec", steps: [
+          { icon: "edit-box-line", title: "編輯主頁", desc: "基本資料／專長／社群連結", be: ["ProfileEditPopup", "SkillsEditPopup", "LinksEditPopup"] },
+          { icon: "save-line", title: "儲存", be: ["RealProfile.save()"], desc: "寫 profiles + subprofiles/realProfile" },
+          { icon: "lock-line", title: "認證資訊唯讀", desc: "verifiedRolePitch 僅後端可寫，要改需重送審核", tag: ["exist","安全點"] },
+        ]},
+        { label: "訪客", icon: "eye-line", steps: [
+          { icon: "user-follow-line", title: "追蹤／私訊", desc: "→ 流程 6" },
+          { icon: "flag-line", title: "檢舉／封鎖", desc: "→ 流程 5" },
+          { icon: "layout-masonry-line", title: "瀏覽 6 分頁", desc: "關於我／專長／部落格／主辦活動／活動紀錄／心得論壇" },
+        ]},
+      ]},
+      { icon: "database-2-line", title: "6 分頁資料來源", desc: "部落格 fetchUserPosts(authorId)、主辦活動 fetchUserActivities(createdBy)、活動紀錄(待補)、專長 currentSkills、社群 socialLinks、心得/論壇 以 senderId 撈（MergedSenderBadges）",
+        be: ["getRegistrationsByUserUid()"], tag: ["todo","活動紀錄待補"] },
+    ],
+    key: "6 分頁沿用既有 <code>activeSectionTab</code> 機制，CSS 用既有 <code>styles.sectionTab / mainCard</code>。心得／論壇分頁以 <code>senderId</code> 串既有貼文（§8，免新查詢）；「活動紀錄」需新增 <code>getRegistrationsByUserUid</code>（以 userUid 撈報名）才能串。本人視角另含「預覽訪客視角」切換與各分頁空狀態（Demo 的 <code>?as=visitor</code> / <code>?empty=1</code>）。",
+  },
+
+  {
+    id: "blog", icon: "article-line", title: "部落格：撰寫 → 發佈 → 連動",
+    intro: "創作者寫文章發佈後，透過 authorId 自動連回三個位置。發佈權只要把目前 admin-only 的條件放寬給 verified-creator。",
+    chain: [
+      { icon: "quill-pen-line", title: "撰寫文章", be: ["/blog/create", "BlockEditor"], desc: "權限：admin || badges.includes('verified-creator')", tag: ["exist","放寬一行"] },
+      { icon: "send-plane-line", title: "發佈", be: ["BlogPost.create(authorId, authorName)"], desc: "status = published；Markdown 存 content" },
+      { kind: "split", branches: [
+        { label: "主頁部落格分頁", icon: "user-star-line", tone: "rec", steps: [
+          { kind: "done", icon: "article-line", title: "出現在創作者主頁", be: ["BlogPost.fetchUserPosts(authorId)"] },
+        ]},
+        { label: "全站列表", icon: "list-check", steps: [
+          { kind: "done", icon: "layout-grid-line", title: "進入 /blog 流", desc: "依分類與時間排序" },
+        ]},
+        { label: "追蹤者通知", icon: "notification-line", steps: [
+          { kind: "done", icon: "bell-line", title: "扇出通知 → 流程 6", tag: ["todo","待補"] },
+        ]},
+      ]},
+      { icon: "settings-3-line", title: "內容管理", be: ["/blog/manage", "BlogPost.updateStatus()"], desc: "已發佈／草稿／封存切換" },
+      { icon: "vip-crown-2-line", title: "作者署名補金標", be: ["MergedSenderBadges"], tag: ["todo","BlogView 待補"], desc: "byline 目前無標章，需補上" },
+    ],
+    key: "文章靠 <code>authorId</code> 連回作者帳號（= <code>appStates.user.uid</code>）。注意 <code>authorAvatar</code> 不會自動帶入，需在 blogData 顯式塞入；slug 不檢查唯一，可加短 id 後綴。",
+  },
+
+  {
+    id: "report", icon: "flag-2-line", title: "檢舉處理流程",
+    intro: "檢舉創作者（profile）或文章（blog）共用同一彈窗，原因依對象切換。送出寫入 reports 集合待管理員處理。profile/blog 檢舉為待補。",
+    chain: [
+      { kind: "decision", icon: "flag-line", title: "檢舉對象？", desc: "創作者個人頁 or 部落格文章" },
+      { icon: "list-radio", title: "填檢舉表單", desc: "原因（依對象切換）＋ 您的身分 ＋ 補充說明 ＋（選填）Email", tag: ["todo","新彈窗"] },
+      { icon: "send-plane-line", title: "送出檢舉", be: ["createReport()", "reports:processed=false"], tag: ["todo","待補集合"] },
+      { icon: "shield-user-line", title: "管理員處理", be: ["/admin/reports"], tag: ["todo","待補頁"], desc: "沿用既有 admin 佇列模式" },
+      { kind: "decision", icon: "scales-3-line", title: "處置方式" },
+      { kind: "split", branches: [
+        { label: "下架內容", icon: "archive-line", steps: [
+          { kind: "done", icon: "archive-line", title: "封存文章", be: ["BlogPost.updateStatus('archived')"], tag: ["exist","已存在"] },
+        ]},
+        { label: "撤銷標章", icon: "shield-cross-line", steps: [
+          { kind: "done", icon: "shield-cross-line", title: "移除金標", be: ["revokeVerifiedBadgeFromUser()"], tag: ["todo","待補"] },
+        ]},
+        { label: "警告／封鎖", icon: "error-warning-line", steps: [
+          { kind: "done", icon: "user-forbid-line", title: "標記處置", be: ["reports.action", "processed=true"] },
+        ]},
+      ]},
+    ],
+    key: "Demo 用 <code>CZ.reportModal(kind, name)</code>，<code>kind</code> 為 profile/blog 時切換原因清單。貼文層級檢舉雖已有，但 profile/blog 檢舉、<code>reports</code> 集合、<code>/admin/reports</code> 與 <code>revokeVerifiedBadgeFromUser</code> 皆需新增。另：訪客「更多 → 封鎖」是<strong>使用者層級封鎖</strong>（加入個人 block list，待補），與此處管理員處置不同。",
+  },
+
+  {
+    id: "follow", icon: "user-heart-line", title: "追蹤與通知",
+    intro: "創作者「追蹤」是單向關注（不同於雙向人脈 Connection）。發新文章時對所有追蹤者扇出通知，建議用 server-side hook 批次寫，避免前端逐筆。",
+    chain: [
+      { kind: "split", branches: [
+        { label: "追蹤動作", icon: "user-follow-line", tone: "rec", steps: [
+          { icon: "user-add-line", title: "訪客點追蹤", be: ["followCreator()"], tag: ["todo","單向 follow 待補"] },
+          { kind: "done", icon: "team-line", title: "followerCount +1", desc: "單向邊，不需對方同意；有別於雙向 Connection" },
+        ]},
+        { label: "發文扇出", icon: "rss-line", steps: [
+          { icon: "send-plane-line", title: "創作者發佈文章", desc: "status = published" },
+          { icon: "function-line", title: "觸發 hook", be: ["onBlogPublished()"], tag: ["todo","Cloud Function 待補"] },
+          { kind: "done", icon: "notification-badge-line", title: "批次寫通知", be: ["Notification"], desc: "對所有 followers" },
+        ]},
+      ]},
+      { icon: "notification-3-line", title: "通知類型", desc: "認證通過/駁回 · 新文章 · 被追蹤 · 檢舉處理完成", be: ["addSideNotification()"], tag: ["exist","即時提示已有"] },
+    ],
+    key: "既有 <code>Connection</code> 是雙向人脈，單向「追蹤」需新增 follow 邊（<code>followerUids[]</code> 或 <code>follows/{a}_{b}</code>）與 <code>followerCount</code>。持久化 <code>Notification</code> 模型需確認／補齊。",
+  },
+
+  {
+    id: "entry", icon: "compass-3-line", title: "創作者專區入口",
+    intro: "讓使用者找得到創作者。需在導覽列加一個「創作者」入口，並新增專區首頁與探索頁（Demo 的 index／directory 即此兩頁的雛形）。",
+    chain: [
+      { icon: "menu-line", title: "導覽列加「創作者」入口", be: ["TOP_BAR_TABS", "lib/config.js"], tag: ["todo","待補"], desc: "icon quill-pen-line" },
+      { kind: "split", branches: [
+        { label: "專區首頁", icon: "home-4-line", tone: "rec", steps: [
+          { icon: "star-line", title: "精選創作者 + 分類", be: ["/[lang]/creators"], tag: ["todo","待補"], desc: "Demo index.html" },
+        ]},
+        { label: "探索頁", icon: "search-line", steps: [
+          { icon: "grid-line", title: "全部創作者 + 搜尋篩選", desc: "Demo directory.html" },
+        ]},
+      ]},
+      { kind: "done", icon: "user-star-line", title: "點創作者卡 → 主頁（流程 3）", be: ["/[lang]/user/[id]"] },
+    ],
+    key: "唯一入口層的工作（T13）。Demo 的 <code>index.html</code>／<code>directory.html</code> 對應正式的 <code>/[lang]/creators</code> 首頁與探索頁；導覽列入口加在 <code>TOP_BAR_TABS</code>／<code>BOTTOM_BAR_TABS</code>。",
+  },
+];
+
+/* ---------- 渲染 ---------- */
+function pill(tag) {
+  if (!tag) return "";
+  const [kind, label] = tag;
+  return `<span class="pillTag ${kind === 'todo' ? 'todo' : 'exist'}">${label}</span>`;
+}
+function beChips(be) {
+  if (!be || !be.length) return "";
+  return `<div class="fnBE">${be.map(b => `<code class="beChip${/待補|todo/.test(b) ? ' dim' : ''}">${b}</code>`).join("")}</div>`;
+}
+function node(s) {
+  const tone = s.kind === "done" ? "done" : (s.kind === "decision" ? "decision" : (s.tone || ""));
+  return `<div class="flowNode ${tone}">
+    <div class="fnIcon"><i class="ri-${s.icon || 'circle-line'}"></i></div>
+    <div class="fnBody">
+      <div class="fnTitle">${s.title}${pill(s.tag)}</div>
+      ${s.desc ? `<div class="fnDesc">${s.desc}</div>` : ""}
+      ${beChips(s.be)}
+    </div>
+  </div>`;
+}
+function conn() { return `<div class="flowConn"><i class="ri-arrow-down-line"></i></div>`; }
+function split(s) {
+  return `<div class="flowSplit">${s.branches.map(br => `
+    <div class="flowCol">
+      <div class="colHead ${br.tone || ''}">${br.icon ? `<i class="ri-${br.icon}"></i>` : ''}${br.label}</div>
+      ${br.steps.map((st, i) => (i ? conn() : "") + node(st)).join("")}
+    </div>`).join("")}</div>`;
+}
+function chainHtml(chain) {
+  return chain.map((s, i) => {
+    const block = s.kind === "split" ? split(s) : node(s);
+    return (i ? conn() : "") + block;
+  }).join("");
+}
+function renderFlows() {
+  const flowsEl = document.getElementById("flows");
+  const navEl = document.getElementById("flowNav");
+  navEl.innerHTML = FLOWS.map((f, i) => `<a href="#${f.id}"><b>${i + 1}.</b> ${f.title}</a>`).join("");
+  flowsEl.innerHTML = FLOWS.map((f, i) => `
+    <section class="flowSection" id="${f.id}">
+      <div class="flowSecHead">
+        <div class="num">${i + 1}</div>
+        <h2><i class="ri-${f.icon}" style="color:var(--theme-color);margin-right:6px"></i>${f.title}</h2>
+      </div>
+      <p class="flowIntro">${f.intro}</p>
+      <div class="flowChain">${chainHtml(f.chain)}</div>
+      ${f.key ? `<div class="flowKey"><i class="ri-links-line"></i><span>${f.key}</span></div>` : ""}
+    </section>`).join("");
+}
+renderFlows();
+</script>
+</body>
+</html>
